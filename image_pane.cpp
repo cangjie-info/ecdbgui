@@ -1,4 +1,4 @@
-#include "image_label.h"
+#include "image_pane.h"
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QRect>
@@ -12,14 +12,14 @@
 #include <QApplication>
 #include <QMessageBox>
 
-ImageLabel::ImageLabel(QWidget* parent, SurfaceImgs* surface) //constructor
+ImagePane::ImagePane(QWidget* parent, SurfaceImgs* surface) //constructor
     : 	QLabel(parent), surf(surface), rubberBand(NULL)
 {
     setAlignment(Qt::AlignTop | Qt::AlignLeft); 	//label contents aligned top left
     mode = SURFACE;
 }
 
-void ImageLabel::newSurf()
+void ImagePane::newSurf()
 {
     hide();
     QString imageFile = surf->getImageFile();
@@ -33,7 +33,7 @@ void ImageLabel::newSurf()
     reset();
 }
 
-void ImageLabel::reset()
+void ImagePane::reset()
 {
     zoom = 1;
     rotation = 0;
@@ -52,12 +52,12 @@ void ImageLabel::reset()
     show();
 }
 
-ImageLabel::Mode ImageLabel::getMode() const
+ImagePane::Mode ImagePane::getMode() const
 {
     return mode;
 }
 
-QString ImageLabel::getModeName() const
+QString ImagePane::getModeName() const
 {
     switch (mode)
     {
@@ -71,17 +71,17 @@ QString ImageLabel::getModeName() const
     return "";
 }
 
-double ImageLabel::getZoom() const
+double ImagePane::getZoom() const
 {
     return zoom;
 }
 
-double ImageLabel::getRotation() const
+double ImagePane::getRotation() const
 {
     return rotation;
 }
 
-void ImageLabel::getGraphImageList(const int imageIndex, QList<QImage>& imgList, const QSize size)
+void ImagePane::getGraphImageList(const int imageIndex, QList<QImage>& imgList, const QSize size)
 {
     //check to see whether imageIndex is oor
     if(imageIndex < 0 || imageIndex >= surf->inscriptionCount())
@@ -111,7 +111,7 @@ void ImageLabel::getGraphImageList(const int imageIndex, QList<QImage>& imgList,
 }
 
 //TODO replace with funciton in CangjieImg::
-void ImageLabel::rotateAndCrop(const QImage& startImg, const BoundingBox* box, QImage& endImg)
+void ImagePane::rotateAndCrop(const QImage& startImg, const BoundingBox* box, QImage& endImg)
 {
     QTransform tf;
     tf.rotate(box->getRotation());
@@ -119,7 +119,7 @@ void ImageLabel::rotateAndCrop(const QImage& startImg, const BoundingBox* box, Q
     endImg = (startImg.transformed(tf)) . copy(selection);
 }
 
-void ImageLabel::modeDown()
+void ImagePane::modeDown()
 {
     switch(mode)
     {
@@ -161,7 +161,7 @@ void ImageLabel::modeDown()
     }
 }
 
-void ImageLabel::modeUp()
+void ImagePane::modeUp()
 {
     switch(mode)
     {
@@ -183,13 +183,13 @@ void ImageLabel::modeUp()
     }
 }
 
-void ImageLabel::toggleIndexNumbers()
+void ImagePane::toggleIndexNumbers()
 {
     indexNumbersVisible = !indexNumbersVisible;
     update(); //to ensure that they become (in)visible immediately
 }
 
-void ImageLabel::advanceCurrentBoxIndex()
+void ImagePane::advanceCurrentBoxIndex()
 {
     if(currentBoxIndex == -1) //there are no boxes
         return;
@@ -213,7 +213,7 @@ void ImageLabel::advanceCurrentBoxIndex()
     update();
 }
 
-void ImageLabel::reverseCurrentBoxIndex()
+void ImagePane::reverseCurrentBoxIndex()
 {
     if(currentBoxIndex == -1) //there are no boxes
         return;
@@ -237,7 +237,7 @@ void ImageLabel::reverseCurrentBoxIndex()
     update();
 }
 
-void ImageLabel::deleteCurrentBox()
+void ImagePane::deleteCurrentBox()
         //if an inscription or surface box is deleted
         //all boxes below it in the hierarchy (graphs, or graphs and inscriptions)
         //are deleted too
@@ -276,7 +276,7 @@ void ImageLabel::deleteCurrentBox()
     update();
 }
 
-bool ImageLabel::confirmDelete(QString type)
+bool ImagePane::confirmDelete(QString type)
 {
     QMessageBox msgBox(this);
     msgBox.setText(QString("This will delete all %1 images.").arg(type));
@@ -286,12 +286,12 @@ bool ImageLabel::confirmDelete(QString type)
     return (msgBox.exec() == QMessageBox::Ok);
 }
 
-void ImageLabel::unlock()
+void ImagePane::unlock()
 {
     locked = false;
 }
 
-void ImageLabel::paintEvent(QPaintEvent* event)
+void ImagePane::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
 
@@ -366,7 +366,7 @@ void ImageLabel::paintEvent(QPaintEvent* event)
     resize(transformedImage.size()); // keep label same size as image
 }
 
-void ImageLabel::transformImage()
+void ImagePane::transformImage()
 {
     transform.reset(); //set to identity matrix
     transform.rotate(rotation);	//set matrix
@@ -375,7 +375,7 @@ void ImageLabel::transformImage()
 }	
 
 //mouse down, start rubberband
-void ImageLabel::mousePressEvent(QMouseEvent* event)
+void ImagePane::mousePressEvent(QMouseEvent* event)
 {
     origin = event->pos();
     if(!rubberBand)
@@ -390,14 +390,14 @@ void ImageLabel::mousePressEvent(QMouseEvent* event)
 }
 
 //dragging rubberband
-void ImageLabel::mouseMoveEvent(QMouseEvent* event)
+void ImagePane::mouseMoveEvent(QMouseEvent* event)
 {
     rubberBand->setGeometry(QRect(origin, event->pos()).normalized());
     //normalized, in case dragging up or left
 }
 
 //mouse up, end rubberband
-void ImageLabel::mouseReleaseEvent(QMouseEvent* event)
+void ImagePane::mouseReleaseEvent(QMouseEvent* event)
         //TODO after adding new item, TranscriptionWindow::reset() must be called
 	//use signal and slot arrangement.
 {
@@ -436,7 +436,7 @@ void ImageLabel::mouseReleaseEvent(QMouseEvent* event)
     update();
 }
 
-void ImageLabel::zoomIn()
+void ImagePane::zoomIn()
 {
     if(zoom<5.0)
     {
@@ -446,7 +446,7 @@ void ImageLabel::zoomIn()
     }
 }
 
-void ImageLabel::zoomOut()
+void ImagePane::zoomOut()
 {
     if(zoom>0.1)
     {
@@ -456,14 +456,14 @@ void ImageLabel::zoomOut()
     }
 }
 
-void ImageLabel::zoomRestore()
+void ImagePane::zoomRestore()
 {
     zoom=1.0; //reset displayed image scale
     transformImage();
     update();
 }
 
-void ImageLabel::rotateClockwise()
+void ImagePane::rotateClockwise()
 {
     rotation+=5; // +5 degrees
     if(rotation>=360)			//keep 0 <= rotation < 360
@@ -472,7 +472,7 @@ void ImageLabel::rotateClockwise()
     update();
 }
 
-void ImageLabel::rotateAntiClockwise()
+void ImagePane::rotateAntiClockwise()
 {
     rotation-=5; // -5 degrees
     if(rotation < 0)		//keep 0 <= rotation < 360
@@ -481,14 +481,14 @@ void ImageLabel::rotateAntiClockwise()
     update();
 }
 
-void ImageLabel::rotateRestore()
+void ImagePane::rotateRestore()
 {
     rotation=0;
     transformImage();
     update();
 }
 
-void ImageLabel::raiseBoxIndex()
+void ImagePane::raiseBoxIndex()
 {
     if(locked)
         return;
@@ -520,7 +520,7 @@ void ImageLabel::raiseBoxIndex()
     update();
 }
 
-void ImageLabel::lowerBoxIndex()
+void ImagePane::lowerBoxIndex()
 {
     if(locked)
         return;

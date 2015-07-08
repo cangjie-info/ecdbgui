@@ -1,12 +1,23 @@
-#ifndef VIEWER_H
-#define VIEWER_H
+#ifndef SURFACE_WINDOW_H
+#define SURFACE_WINDOW_H
 
-//Main window of viewer application
-//Has menu bars and handles actions
-//Has a scroll area as its main widget
-//with an image label for viewing the image
-//Creates an instance of DbHandler to read and write the surfaces, 
-//inscriptions and inscriptionGraphs tables of ec.
+/*
+Main window of ecdbgui. It is a somewhat arbitrary choice to make the surface
+window the main window, but as good as any. Can spawn child windows for other
+entities: graphs, archeology, lingistics, etc. as needed.
+*/
+
+/*TODO instead of navigating a query result set, keep a QList of id numbers, and
+ * query each in turn. In that way, items can be added or removed from the list
+ * by various search procedures. The list and the current item in the list can be saved
+ * to the configuration file.
+*/
+
+/* TODO save list to file
+ * clear list
+ * save inscriptions to inscription list
+ * save graphs to graph list
+*/
 
 #include <QMainWindow>
 #include <QScrollArea>
@@ -14,17 +25,17 @@
 #include <QDialog>
 #include "surface_imgs.h"
 #include "db_handler.h"
-#include "image_label.h"
+#include "image_pane.h"
 #include "surface_transcription.h"
-#include "transcription_window.h"
+#include "transcription_pane.h"
 #include "config_handler.h"
 
-class Viewer : public QMainWindow
+class SurfaceWindow : public QMainWindow
 {
     Q_OBJECT //necessary for use of signals and slots
 public:
-    Viewer();	//constructor
-    //sets DbHandler instance for communicating with ec
+    SurfaceWindow();	//constructor
+    //sets DbHandler instance for communicating with database
     //requests DbHandler to query surfaces
     //sets up GUI
     //advances to first surface
@@ -59,6 +70,7 @@ private:
     QAction* exitAction; //quit application
     QAction* advanceAction; //increment the row in the db if in SURFACE mode
     QAction* backAction; 	//decrement the row in the db if in SURFACE mode
+         //TODO - make advance and back work for publication sequence, and list.
     QAction* unlockAction; //allows editing of surface
     QAction* toggleFullScreenAction;
     QAction* saveAction; //save current state to db
@@ -105,7 +117,7 @@ private:
 
     //private data members
     ConfigHandler* config; //handles interaction with configuration file
-    ImageLabel* imageLabel; //widget that holds and manipulates the image being viewed
+    ImagePane* imagePane; //widget that holds and manipulates the image being viewed
     DbHandler db; //handles all SQL queries and other interaction with ec db
         //TODO: reimplement as namespace
     QScrollArea* imgScrollArea; //provides scroll bars for large imageLabel
@@ -115,11 +127,12 @@ private:
     SurfaceTranscription trans; //stores complete transcription and markup for one surface
     //consists of data for surface, plus a list of inscriptionTrans, each of which
     //consists of a list of graphTrans.
-    TranscriptionWindow* transWindow; 	//widget for displaying and editing
+    TranscriptionPane* transcriptionPane; 	//widget for displaying and editing
     //sets of transcriptions.
-    QDockWidget* dock;// dock window for the TranscriptinWindow.
-    bool locked; //prevents any modification TODO: differnet kinds of locks, e.g. that allo
-    //addition but not deletion...
+    QDockWidget* metaDataDock; // dock window for display/editing metadata, and controls
+    QDockWidget* transcriptionsDock;// dock window for the TranscriptinWindow.
+    bool locked; //prevents any modification TODO: differnet kind of locks, e.g. that allows
+    //reading but not writing
     bool modified; //true if either surf or trans has been modified since last save
 }; 
 

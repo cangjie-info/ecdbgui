@@ -1,5 +1,5 @@
-#ifndef IMAGE_LABEL_H
-#define IMAGE_LABEL_H
+#ifndef IMAGE_PANE_H
+#define IMAGE_PANE_H
 
 //class for image being viewed,
 //and for manipulations performed on it
@@ -16,12 +16,12 @@
 class QRubberBand;
 class QSize;
 
-class ImageLabel : public QLabel
+class ImagePane : public QLabel
 {
 	Q_OBJECT	//needed for signals and slots
 
 public:
-	ImageLabel(QWidget* parent, SurfaceImgs* surface); //constructor
+	ImagePane(QWidget* parent, SurfaceImgs* surface); //constructor
 	enum Mode {SURFACE, INSCRIPTION, GRAPH}; 
 	void newSurf(); //gets image from disk, sets mode to 
 			//SURFACE, resets display

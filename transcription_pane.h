@@ -1,5 +1,5 @@
-#ifndef TRANSCRIPTION_WINDOW_H
-#define TRANSCRIPTION_WINDOW_H
+#ifndef TRANSCRIPTION_PANE_H
+#define TRANSCRIPTION_PANE_H
 
 //class to display and edit set of transcriptions 
 //for a single surface
@@ -24,11 +24,11 @@
 #include "surface_transcription.h"
 #include "surface_imgs.h"
 
-class TranscriptionWindow : public QWidget
+class TranscriptionPane : public QWidget
 {
 	Q_OBJECT
 public:
-	TranscriptionWindow(SurfaceTranscription* const trans, const SurfaceImgs* const imgs); //constructor
+	TranscriptionPane(SurfaceTranscription* const trans, const SurfaceImgs* const imgs); //constructor
 		//creates surfaceLabel and calls refresh()
 //NO. PUT IN VIEWER.	void editCurrentInscription(); //creates new pop-up dialog to edit the current inscription
 	int getCurrentTranscriptionIndex() const; //returns index of current inscription transcription

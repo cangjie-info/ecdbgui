@@ -12,7 +12,7 @@ ConfigHandler::ConfigHandler()
     QDir home = QDir().home();
     QFile configFile;
     QDir::setCurrent(home.path());
-    configFile.setFileName(".cangjie");
+    configFile.setFileName(".ecdbgui");
     if(configFile.exists())
     {
         //read it
@@ -39,10 +39,10 @@ void ConfigHandler::save() const
 {
     QDir home = QDir().home();
     QDir::setCurrent(home.path());
-    QFile::remove(".cangjie_old");
-    QFile::rename(".cangjie", ".cangjie_old");
+    QFile::remove(".ecdbgui_old");
+    QFile::rename(".ecdbgui", ".ecdbgui_old");
     QFile configFile;
-    configFile.setFileName(".cangjie");
+    configFile.setFileName(".ecdbgui");
     configFile.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream config(&configFile);
 

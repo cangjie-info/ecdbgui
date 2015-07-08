@@ -1,11 +1,11 @@
-#include "viewer.h"
+#include "surface_window.h"
 #include <QtWidgets>
 #include <QDebug>
 #include <QMessageBox>
 #include "edit_transcription_dialog.h"
 
-Viewer::Viewer()
-    : imageLabel(NULL), transWindow(NULL)
+SurfaceWindow::SurfaceWindow()
+    : imagePane(NULL), transcriptionPane(NULL)
 {
     //open config file
     config = new ConfigHandler();
@@ -23,34 +23,43 @@ Viewer::Viewer()
         qDebug() << "No corpus found.";
 
     //create ImageLabel - for displaying the surface images
-    imageLabel = new ImageLabel(this, &surf); //surf is passed as pointer
+    imagePane = new ImagePane(this, &surf); //surf is passed as pointer
     //so that imageLabel can manipulate it.
 
+    //TODO dock area to hold metadata and control buttons.
+    metaDataDock = new QDockWidget(this);
+    metaDataDock->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, metaDataDock);
+    //TODO populate with data and controls.
+
     //create dock and scroll area for transWindow
-    dock = new QDockWidget(this);
-    dock->setAllowedAreas(Qt::LeftDockWidgetArea);
-    addDockWidget(Qt::LeftDockWidgetArea, dock);
+    //TODO - currently, the dock can be closed and there is no way to
+    //reopen it => fix by adding a Window menu with a show dock action.
+    transcriptionsDock = new QDockWidget(this);
+    transcriptionsDock->setAllowedAreas(Qt::LeftDockWidgetArea);
+    addDockWidget(Qt::LeftDockWidgetArea, transcriptionsDock);
     transScrollArea = new QScrollArea(this);
     transScrollArea->setMinimumWidth(500);
-    //	transScrollArea->setBackgroundRole(QPalette::Dark);
-    dock->setWidget(transScrollArea);
+    transcriptionsDock->setWidget(transScrollArea);
 
     createActions();
     createMenus();
+
+    //create scroll area for surface image
     imgScrollArea = new QScrollArea(this);
     imgScrollArea->setBackgroundRole(QPalette::Dark); //assigns bground color accroding to theme
-    imgScrollArea->setWidget(imageLabel);	//scrollArea holds the imageLabel
-    setCentralWidget(imgScrollArea); //makes scrollArea the central widget of the MainWindow (Viewer)
+    imgScrollArea->setWidget(imagePane);	//scrollArea holds the imageLabel
+    setCentralWidget(imgScrollArea); //makes scrollArea the central widget of the MainWindow (SurfaceWindow)
 
     showMaximized();
 
+    //TODO replace this with getSavedSurfList() and make moveToSurf a method of this.
     db.moveToSurf(config->getLastSurf());
 
-//delete    db.nextSurface(); //stays put if already on last record
-    newSurf(); //
+    newSurf();
 }
 
-void Viewer::closeEvent(QCloseEvent* event)
+void SurfaceWindow::closeEvent(QCloseEvent* event)
 {
     if(modified)
     {
@@ -60,52 +69,57 @@ void Viewer::closeEvent(QCloseEvent* event)
         event->ignore();
         return;
     }
+    //TODO modify to save current list of surfs, and the current surf
+      //saving as id numbers.
     config->setLastSurf(db.getPositionInCorpus());
     config->save();
     event->accept();
 
 }
 
-void Viewer::newSurf()
+void SurfaceWindow::newSurf()
 {
     db.readSurface(surf, trans);
 
+    //TODO - decide if locked is useful or not
     locked = true;
     modified = false;
 
-    imageLabel->newSurf();
+    imagePane->newSurf();
     //delete old transcription window and create new one
-    if(transWindow)
-        delete transWindow;
-    transWindow = new TranscriptionWindow(&trans, &surf);
+    if(transcriptionPane)
+        delete transcriptionPane;
+    transcriptionPane = new TranscriptionPane(&trans, &surf);
     //connect ImageLabel signals to transcription window slots
-    connect(imageLabel, SIGNAL(inscrImgListModified()), transWindow, SLOT(refresh()));
-    connect(imageLabel, SIGNAL(inscrImgListModified()), this, SLOT(setModified()));
+    connect(imagePane, SIGNAL(inscrImgListModified()), transcriptionPane, SLOT(refresh()));
+    connect(imagePane, SIGNAL(inscrImgListModified()), this, SLOT(setModified()));
     //connect Actions to transcription window slots
-    connect(toggleCanHaveImageAction, SIGNAL(triggered()), transWindow, SLOT(toggleCanHaveImage()));
-    connect(nextTransAction, SIGNAL(triggered()), transWindow, SLOT(nextInscription()));
-    connect(prevTransAction, SIGNAL(triggered()), transWindow, SLOT(prevInscription()));
-    connect(deleteTransAction, SIGNAL(triggered()), transWindow, SLOT(deleteInscription()));
-    connect(insertTransAction, SIGNAL(triggered()), transWindow, SLOT(insertInscription()));
-    connect(raiseTransAction, SIGNAL(triggered()), transWindow, SLOT(raiseInscription()));
-    connect(lowerTransAction, SIGNAL(triggered()), transWindow, SLOT(lowerInscription()));
-    connect(allCanHaveImageAction, SIGNAL(triggered()), transWindow, SLOT(allCanHaveImage()));
-    connect(copyTransAction, SIGNAL(triggered()), transWindow, SLOT(copyTrans()));
-    connect(this, SIGNAL(unlockSignal()), transWindow, SLOT(unlock()));
-    connect(this, SIGNAL(unlockSignal()), imageLabel, SLOT(unlock()));
+    connect(toggleCanHaveImageAction, SIGNAL(triggered()), transcriptionPane, SLOT(toggleCanHaveImage()));
+    connect(nextTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(nextInscription()));
+    connect(prevTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(prevInscription()));
+    connect(deleteTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(deleteInscription()));
+    connect(insertTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(insertInscription()));
+    connect(raiseTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(raiseInscription()));
+    connect(lowerTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(lowerInscription()));
+    connect(allCanHaveImageAction, SIGNAL(triggered()), transcriptionPane, SLOT(allCanHaveImage()));
+    connect(copyTransAction, SIGNAL(triggered()), transcriptionPane, SLOT(copyTrans()));
+    connect(this, SIGNAL(unlockSignal()), transcriptionPane, SLOT(unlock()));
+    connect(this, SIGNAL(unlockSignal()), imagePane, SLOT(unlock()));
 
-    connect(transWindow, SIGNAL(inscrListModified()), this, SLOT(setModified()));
+    connect(transcriptionPane, SIGNAL(inscrListModified()), this, SLOT(setModified()));
 
     //install transcription window in scroll area in dock
-    transScrollArea->setWidget(transWindow);
-    transWindow->show(); //or is it the dock that we need to show()???
+    transScrollArea->setWidget(transcriptionPane);
+    transcriptionPane->show();
 
     statusUpdate();
+
+    //TODO update for metadata dock
 }
 
-void Viewer::advance()
+void SurfaceWindow::advance()
 {
-    if(imageLabel->getMode() == ImageLabel::SURFACE) //can only advance to a new surface from SURFACE mode
+    if(imagePane->getMode() == ImagePane::SURFACE) //can only advance to a new surface from SURFACE mode
     {
         if(modified)
         {
@@ -121,9 +135,9 @@ void Viewer::advance()
     }
 }
 
-void Viewer::back()
+void SurfaceWindow::back()
 {
-    if(imageLabel->getMode() == ImageLabel::SURFACE)
+    if(imagePane->getMode() == ImagePane::SURFACE)
     {
         if(modified)
         {
@@ -139,15 +153,15 @@ void Viewer::back()
     }
 }
 
-void Viewer::save()
+void SurfaceWindow::save()
 {
-//TODO    removeTrailingNulls;
+//TODO    removeTrailingNulls; (This is probably not necessary - check)
     db.writeSurface(surf, trans);
     modified = false;
     statusUpdate();
 }
 
-void Viewer::discardChanges()
+void SurfaceWindow::discardChanges()
 {
     if(modified)
     {
@@ -162,7 +176,7 @@ void Viewer::discardChanges()
     }
 }
 
-void Viewer::unlock()
+void SurfaceWindow::unlock()
 {
     //unlock imageLabel and transcription window by emitting unlock signal
     emit unlockSignal();
@@ -170,15 +184,15 @@ void Viewer::unlock()
     statusUpdate();
 }
 
-void Viewer::toggleFullScreen()
+void SurfaceWindow::toggleFullScreen()
 {
     setWindowState(windowState() ^ Qt::WindowFullScreen);
 }
 
-void Viewer::editTranscription()
+void SurfaceWindow::editTranscription()
 {
-    int transcriptionIndex = transWindow->getCurrentTranscriptionIndex();
-    int imageIndex = transWindow->getCurrentImageIndex();
+    int transcriptionIndex = transcriptionPane->getCurrentTranscriptionIndex();
+    int imageIndex = transcriptionPane->getCurrentImageIndex();
     if(locked ||
        transcriptionIndex == trans.count()) //index set to the "append" position)
         return;
@@ -187,7 +201,7 @@ void Viewer::editTranscription()
     InscriptionTranscription* const pInscrTrans = &trans[transcriptionIndex];
     // ITEM - list of graph images (read only)
     QList<QImage> imgList;
-    imageLabel->getGraphImageList(imageIndex, imgList, QSize(100, 100));
+    imagePane->getGraphImageList(imageIndex, imgList, QSize(100, 100));
 
     EditTranscriptionDialog dialog(this, pInscrTrans, imgList);
 
@@ -195,34 +209,55 @@ void Viewer::editTranscription()
     {
         modified = true;
         statusUpdate();
-        transWindow->refresh();
+        transcriptionPane->refresh();
     }
 }
 
-void Viewer::statusUpdate()
+void SurfaceWindow::statusUpdate()
 {
+    //TODO - some of these are metadata and not status items - move to metadata pane.
     QString statusText;
     statusText += QString(
             "surface: %1, surface type: %2 | zoom = x%3, rotation = %4 | mode = %5 | %6LOCKED%7")
-            .arg(trans.getPubId() + trans.getPubNumber())
-            .arg(trans.getSurfaceType())
-            .arg(imageLabel->getZoom())
-            .arg(imageLabel->getRotation())
-            .arg(imageLabel->getModeName())
+            .arg(trans.getPubId() + trans.getPubNumber()) //TODO move
+            .arg(trans.getSurfaceType())  //TODO move
+            .arg(imagePane->getZoom())
+            .arg(imagePane->getRotation())
+            .arg(imagePane->getModeName())
             .arg(locked ? "" : "UN")
             .arg(modified ? " | MODIFIED" : "");
     statusBar()->showMessage(statusText);
 }
 
-void Viewer::setModified()
+void SurfaceWindow::setModified()
 {
     modified = true;
     statusUpdate();
 }
 
-void Viewer::createActions()
+void SurfaceWindow::createActions()
 {
+   // ISSUE: Qt5 doesn't recognised shortcuts unless actions are added to a toolbar
+   // This is due to a bug in the current version of appmenu-qt5, so I have uninstalled that
+   // package. It breaks the window theme, but seem to have no serious practical consequences.
+   // The alternative is to add addAction(<ActionName>) for all actons.
+   // https://bugs.launchpad.net/ubuntu/+source/appmenu-qt5/+bug/1313248
 
+
+    //TODO navigate list, as well as publication
+    //TODO append current to list
+    //TODO remove current item from list (if it is a list item)
+    //TODO move by 10 and 100, and move last, first.
+
+    //TODO new surface image
+
+    //TODO open various other windows.
+
+    //TODO dump list to html/pdf/rtf
+
+    //TODO dump current to html/pdf/rtf
+
+    //TODO save image thumbnails for surface
     //	saveThumbnailsAction = new QAction(tr("&Save thumbnails"), this);
     //	saveThumbnailsAction->setShortcut(tr("Ctrl+S"));
     //	connect(saveThumbnailsAction, SIGNAL(triggered()), imageLabel, SLOT(saveThumbnails()));
@@ -241,12 +276,12 @@ void Viewer::createActions()
 
     modeDownAction = new QAction(tr("Mode Down"), this);
     modeDownAction->setShortcut(tr("Space"));
-    connect(modeDownAction, SIGNAL(triggered()), imageLabel, SLOT(modeDown()));
+    connect(modeDownAction, SIGNAL(triggered()), imagePane, SLOT(modeDown()));
     connect(modeDownAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     modeUpAction = new QAction(tr("Mode Up"), this);
     modeUpAction->setShortcut(tr("Escape"));
-    connect(modeUpAction, SIGNAL(triggered()), imageLabel, SLOT(modeUp()));
+    connect(modeUpAction, SIGNAL(triggered()), imagePane, SLOT(modeUp()));
     connect(modeUpAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     unlockAction = new QAction(tr("&Unlock"), this);
@@ -255,49 +290,49 @@ void Viewer::createActions()
 
     boxForwardAction = new QAction(tr("Box &Forward"), this);
     boxForwardAction->setShortcut(tr("]"));
-    connect(boxForwardAction, SIGNAL(triggered()), imageLabel, SLOT(advanceCurrentBoxIndex()));
+    connect(boxForwardAction, SIGNAL(triggered()), imagePane, SLOT(advanceCurrentBoxIndex()));
 
     boxBackAction = new QAction(tr("Box &Backward"), this);
     boxBackAction->setShortcut(tr("["));
-    connect(boxBackAction, SIGNAL(triggered()), imageLabel, SLOT(reverseCurrentBoxIndex()));
+    connect(boxBackAction, SIGNAL(triggered()), imagePane, SLOT(reverseCurrentBoxIndex()));
 
     deleteCurrentBoxAction = new QAction(tr("&Delete box"), this);
     deleteCurrentBoxAction->setShortcut(tr("Backspace"));
-    connect(deleteCurrentBoxAction, SIGNAL(triggered()), imageLabel, SLOT(deleteCurrentBox()));
+    connect(deleteCurrentBoxAction, SIGNAL(triggered()), imagePane, SLOT(deleteCurrentBox()));
 
     zoomInAction = new QAction(tr("&Zoom In"), this);
     zoomInAction->setShortcut(tr("+"));
-    connect(zoomInAction, SIGNAL(triggered()), imageLabel, SLOT(zoomIn()));
+    connect(zoomInAction, SIGNAL(triggered()), imagePane, SLOT(zoomIn()));
     connect(zoomInAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     zoomOutAction = new QAction(tr("Zoom &Out"), this);
     zoomOutAction->setShortcut(tr("-"));
-    connect(zoomOutAction, SIGNAL(triggered()), imageLabel, SLOT(zoomOut()));
+    connect(zoomOutAction, SIGNAL(triggered()), imagePane, SLOT(zoomOut()));
     connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     zoomRestoreAction = new QAction(tr("&Restore"), this);
     zoomRestoreAction->setShortcut(tr("0"));
-    connect(zoomRestoreAction, SIGNAL(triggered()), imageLabel, SLOT(zoomRestore()));
+    connect(zoomRestoreAction, SIGNAL(triggered()), imagePane, SLOT(zoomRestore()));
     connect(zoomRestoreAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     rotateClockwiseAction = new QAction(tr("&Clockwise 5 deg"), this);
     rotateClockwiseAction->setShortcut(tr(">"));
-    connect(rotateClockwiseAction, SIGNAL(triggered()), imageLabel, SLOT(rotateClockwise()));
+    connect(rotateClockwiseAction, SIGNAL(triggered()), imagePane, SLOT(rotateClockwise()));
     connect(rotateClockwiseAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     rotateAntiClockwiseAction = new QAction(tr("&Anticlockwise 5 deg"), this);
     rotateAntiClockwiseAction->setShortcut(tr("<"));
-    connect(rotateAntiClockwiseAction, SIGNAL(triggered()), imageLabel, SLOT(rotateAntiClockwise()));
+    connect(rotateAntiClockwiseAction, SIGNAL(triggered()), imagePane, SLOT(rotateAntiClockwise()));
     connect(rotateAntiClockwiseAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     rotateRestoreAction = new QAction(tr("&Restore"), this);
     rotateRestoreAction->setShortcut(tr("^"));
-    connect(rotateRestoreAction, SIGNAL(triggered()), imageLabel, SLOT(rotateRestore()));
+    connect(rotateRestoreAction, SIGNAL(triggered()), imagePane, SLOT(rotateRestore()));
     connect(rotateRestoreAction, SIGNAL(triggered()), this, SLOT(statusUpdate()));
 
     toggleIndexNumbersAction = new QAction(tr("&Toggle Index Numbers"), this);
     toggleIndexNumbersAction->setShortcut(tr("i"));
-    connect(toggleIndexNumbersAction, SIGNAL(triggered()), imageLabel, SLOT(toggleIndexNumbers()));
+    connect(toggleIndexNumbersAction, SIGNAL(triggered()), imagePane, SLOT(toggleIndexNumbers()));
 
     toggleCanHaveImageAction = new QAction(tr("Toggle &No Image"), this);
     toggleCanHaveImageAction->setShortcut(Qt::Key_N + Qt::ShiftModifier);
@@ -344,11 +379,11 @@ void Viewer::createActions()
 
     raiseBoxAction = new QAction("&Raise bounding box index", this);
     raiseBoxAction->setShortcut(tr("Ctrl+]"));
-    connect(raiseBoxAction, SIGNAL(triggered()), imageLabel, SLOT(raiseBoxIndex()));
+    connect(raiseBoxAction, SIGNAL(triggered()), imagePane, SLOT(raiseBoxIndex()));
 
     lowerBoxAction = new QAction("&Lower bounding box index", this);
     lowerBoxAction->setShortcut(tr("Ctrl+["));
-    connect(lowerBoxAction, SIGNAL(triggered()), imageLabel, SLOT(lowerBoxIndex()));
+    connect(lowerBoxAction, SIGNAL(triggered()), imagePane, SLOT(lowerBoxIndex()));
 
     discardChangesAction = new QAction("&Discard changes and reload", this);
     discardChangesAction->setShortcut(tr("Ctrl+Shift+X"));
@@ -359,7 +394,7 @@ void Viewer::createActions()
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
 }
 
-void Viewer::createMenus()
+void SurfaceWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(exitAction);

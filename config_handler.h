@@ -3,6 +3,10 @@
 
 #include <QString>
 
+/* reads and writes the configuration and state file ~/.ecdbgui
+ * TODO modify so that it records surface (and other) id numbers
+ * TODO modify so that it records the surface (and) list.
+ */
 
 class ConfigHandler
 {
@@ -13,7 +17,7 @@ public:
     void setLastSurf(const int); //set last surface id
     void processLine(const QString line); //processes line of config file
 private:
-    int lastSurf; //rank of last viewed surface within corpus
+    int lastSurf;
 };
 
 #endif // CONFIG_HANDLER_H

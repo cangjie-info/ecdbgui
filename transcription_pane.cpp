@@ -1,10 +1,10 @@
-#include "transcription_window.h"
+#include "transcription_pane.h"
 #include <QString>
 #include <QWidget>
 #include <QChar>
 #include <QVBoxLayout>
 
-TranscriptionWindow::TranscriptionWindow(SurfaceTranscription* trans, const SurfaceImgs* const imgs)
+TranscriptionPane::TranscriptionPane(SurfaceTranscription* trans, const SurfaceImgs* const imgs)
     : surfTrans(trans), surfImgs(imgs), layout(NULL)
 {
     layout = new QVBoxLayout();
@@ -15,18 +15,18 @@ TranscriptionWindow::TranscriptionWindow(SurfaceTranscription* trans, const Surf
     refresh();
 }
 
-int TranscriptionWindow::getCurrentTranscriptionIndex() const
+int TranscriptionPane::getCurrentTranscriptionIndex() const
 {
     return currentInscription;
 }
 
-int TranscriptionWindow::getCurrentImageIndex() const
+int TranscriptionPane::getCurrentImageIndex() const
 {
     QList<InscriptionWidget*> oldList = this->findChildren<InscriptionWidget*>("IW");
     return oldList.at(currentInscription)->getImageIndex();
 }
 
-void TranscriptionWindow::refresh()
+void TranscriptionPane::refresh()
 {
     //remove all old InscriptionWidgets
     QList<InscriptionWidget*> oldList = this->findChildren<InscriptionWidget*>("IW");
@@ -92,7 +92,7 @@ void TranscriptionWindow::refresh()
     setMinimumHeight(windowHeight);
 }
 
-void TranscriptionWindow::toggleCanHaveImage()
+void TranscriptionPane::toggleCanHaveImage()
 {
     if(locked || currentInscription < 0 || currentInscription >= surfTrans->count())
     {
@@ -108,7 +108,7 @@ void TranscriptionWindow::toggleCanHaveImage()
     }
 }
 
-void TranscriptionWindow::allCanHaveImage() //sets can have image to TRUE for all inscriptions.
+void TranscriptionPane::allCanHaveImage() //sets can have image to TRUE for all inscriptions.
 {
     if(locked)
         return;
@@ -118,12 +118,12 @@ void TranscriptionWindow::allCanHaveImage() //sets can have image to TRUE for al
     refresh();
 }
 
-void TranscriptionWindow::unlock()
+void TranscriptionPane::unlock()
 {
     locked = false;
 }
 
-void TranscriptionWindow::nextInscription()
+void TranscriptionPane::nextInscription()
 {
     //get list of inscription widgets
     QList<InscriptionWidget*> inscriptionWidgetList = this->findChildren<InscriptionWidget*>("IW");
@@ -138,7 +138,7 @@ void TranscriptionWindow::nextInscription()
     update();
 }
 
-void TranscriptionWindow::prevInscription()
+void TranscriptionPane::prevInscription()
 {
     QList<InscriptionWidget*> inscriptionWidgetList = this->findChildren<InscriptionWidget*>("IW");
     inscriptionWidgetList[currentInscription]->setCurrent(false);
@@ -151,7 +151,7 @@ void TranscriptionWindow::prevInscription()
     update();
 }
 
-void TranscriptionWindow::deleteInscription()
+void TranscriptionPane::deleteInscription()
 {
     if(locked || currentInscription < 0 || currentInscription >= surfTrans->count())
         return;
@@ -161,7 +161,7 @@ void TranscriptionWindow::deleteInscription()
     refresh();
 }
 
-void TranscriptionWindow::insertInscription()
+void TranscriptionPane::insertInscription()
 {
     if(locked || currentInscription < 0 || currentInscription > surfTrans->count())
         return; //NB can insert at "append new" insertion-point
@@ -172,7 +172,7 @@ void TranscriptionWindow::insertInscription()
     refresh();
 }
 
-void TranscriptionWindow::raiseInscription()
+void TranscriptionPane::raiseInscription()
 {
     if(locked || currentInscription < 0 || currentInscription >= surfTrans->count() - 1)
         return;
@@ -182,7 +182,7 @@ void TranscriptionWindow::raiseInscription()
     refresh();
 }
 
-void TranscriptionWindow::lowerInscription()
+void TranscriptionPane::lowerInscription()
 {
     if(locked || currentInscription < 1 || currentInscription > surfTrans->count())
         return;
@@ -192,7 +192,7 @@ void TranscriptionWindow::lowerInscription()
     refresh();
 }
 
-void TranscriptionWindow::copyTrans()
+void TranscriptionPane::copyTrans()
 {
     if(locked || currentInscription < 0 || currentInscription > surfTrans->count())
         return;
