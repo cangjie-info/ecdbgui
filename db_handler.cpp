@@ -12,6 +12,8 @@ DbHandler::DbHandler()
 }
 
 bool DbHandler::connect()
+//TODO allow connection to remote db as an alternative
+//TODO connect to ecdb instead of ec - this is a big change, requiring new names for all tables and fields.
 {
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
@@ -27,6 +29,7 @@ bool DbHandler::connect()
     return true;
 }
 
+//TODO change to selecting a single surface by id number.
 bool DbHandler::setCorpus()
 {
     pCorpusQuery = new QSqlQuery();
@@ -40,6 +43,7 @@ bool DbHandler::setCorpus()
         return false;
 }
 
+//TODO get rid of this, and do a nextInPublication method, et seq.
 bool DbHandler::nextSurface()
 {
     if(pCorpusQuery->next())
@@ -68,6 +72,7 @@ void DbHandler::moveToSurf(int index)
         pCorpusQuery->first();
 }
 
+//TODO delete
 int DbHandler::getCorpusSize() const
 {
     if(pCorpusQuery)
@@ -76,6 +81,7 @@ int DbHandler::getCorpusSize() const
         return 0; //if corpus has not been set
 }
 
+//TODO delete. Instead just display the corpus name and number
 int DbHandler::getPositionInCorpus() const
 {
     if(pCorpusQuery)
@@ -86,6 +92,7 @@ int DbHandler::getPositionInCorpus() const
         return -1; //if corpus has not been set
 }
 
+//TODO The id number will be a private member. Just return it.
 int DbHandler::getCurrentSurfaceId() const //returns ec.surfaces.id
 {
     return pCorpusQuery->value(0).toInt();
@@ -121,7 +128,7 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
     {
         surf.setBox(	QPoint(surfaceQuery.value(1).toInt(), surfaceQuery.value(2).toInt()),
                         QPoint(surfaceQuery.value(3).toInt(), surfaceQuery.value(4).toInt()),
-                        surfaceQuery.value(5).toInt()/*, false*/);
+                        surfaceQuery.value(5).toInt());
     }
     //for trans, get last three fields in query
     trans.setPubId(surfaceQuery.value(6).toString());
@@ -132,7 +139,7 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
     QString inscriptionQueryString("SELECT id, x1, y1, x2, y2, rotation FROM inscriptions WHERE surfaceId=");
     inscriptionQueryString += currentSurfId;
     inscriptionQueryString += " ORDER BY id DESC;"; //DESC allows insertion at index=0
-    //TODO order by serialNumber instead
+
     QSqlQuery inscriptionQuery(inscriptionQueryString);
     while(inscriptionQuery.next())
     {
@@ -144,7 +151,7 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
                     BoundingBox(
                             QPoint(inscriptionQuery.value(1).toInt(), inscriptionQuery.value(2).toInt()),
                             QPoint(inscriptionQuery.value(3).toInt(), inscriptionQuery.value(4).toInt()),
-                            inscriptionQuery.value(5).toInt()/*, false*/),
+                            inscriptionQuery.value(5).toInt()),
                     0); //inserting at the beginning of the list
             trans[0].setCanHaveImage(true);
         }
@@ -201,7 +208,7 @@ db.transaction(); //begin transaction
     QSqlQuery surfaceUpdateQuery;
     if(!surfaceUpdateQuery.exec(surfaceUpdateString))
     {
-  db.rollback(); //handle as error!!
+  db.rollback(); //TODO handle as error!!
         return;
     }
 
@@ -220,11 +227,11 @@ db.transaction(); //begin transaction
     if(!inscriptionDeleteQuery.exec(inscriptionDeleteString))
     {
         qDebug() << inscriptionDeleteQuery.lastError().text();
-    db.rollback();
+    db.rollback(); //TODO handle as error - return false? or use popup dialog?
         return;
     }
 
-    //*** INSERT NEW INSCIRPTIONS AND GRAPHS ***//
+    //*** INSERT NEW INSCRIPTIONS AND GRAPHS ***//
 
     //for each inscription in trans, INSERT inscription,
     //then INSERT inscription graphs
@@ -261,12 +268,13 @@ db.transaction(); //begin transaction
         else
         {
             //nothing to do - db will provide default NULL values
+            //TODO check this.
         }
         insertInscriptionString += ";";
         QSqlQuery insertInscriptionQuery;
         if(!insertInscriptionQuery.exec(insertInscriptionString))
         {
-db.rollback();
+            db.rollback(); //TODO handle as error
             return;
         }
 
@@ -292,7 +300,7 @@ db.rollback();
         {
             int inscriptionId = insertInscriptionQuery.lastInsertId().toInt();
             int graphImgsIndex = 0;
-            //this should return the autonumber field inscriptions.id
+
             QString insertGraphsString = QString(
                     "INSERT INTO inscriptionGraphs "
                     "(inscriptionId, graphNumber, x1, y1, x2, y2, rotation, markup, graphemeId) "
@@ -352,7 +360,7 @@ db.rollback();
             QSqlQuery insertGraphsQuery;
             if(!insertGraphsQuery.exec(insertGraphsString))
             {
-        db.rollback();
+                db.rollback(); //TODO handle as error.
                 return;
             }
         }
@@ -362,7 +370,8 @@ db.commit(); //done - yeay!
 
 int DbHandler::getGrapheme(QString searchString) //static
 {
-    //assume searchString is a name
+    //TODO - search using things other than name field.
+    //maybe write alternate function that
     QSqlQuery signListQuery;
     QString queryString = QString("SELECT id FROM signList WHERE name=\"%1\";")
                           .arg(searchString);
@@ -422,7 +431,7 @@ void DbHandler::getGraphImage(QImage& graphImage, const int graphId, const int s
     {
         //get image file
         QString fileName = query.value(0).toString();
-        fileName.prepend("/home/ads/ecdb/repository/text_imgs/");
+        fileName.prepend("/home/ads/ecdb/repository/text_imgs/"); //TODO make platform independent
         QImage image = QImage(fileName);
         QImage surfaceImage;
     //make surface image

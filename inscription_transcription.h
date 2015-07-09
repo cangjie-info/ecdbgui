@@ -5,6 +5,8 @@
 #include "graph_transcription.h"
 //class representing the transcription of a single inscription
 
+//TODO needs to accommodate graphs' font representations
+
 class InscriptionTranscription : public QList<GraphTranscription>
 {
 public:

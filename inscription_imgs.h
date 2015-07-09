@@ -16,10 +16,8 @@
 //NOTE this should have been done with composition rather than inheritance,
 //but there we are...
 
-#include "graph_transcription.h"
 #include "bounding_box.h"
 #include "box_list.h"
-#include <QList>
 
 class InscriptionImgs : public BoxList, public BoundingBox
 {

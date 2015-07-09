@@ -28,6 +28,7 @@ QString InscriptionTranscription::getInscrString(int index, int markupToggles) c
             //null transcription, use space~dot
             grapheme = 1001;
         graphString = QChar(57343 + at(i).getGrapheme());
+        //TODO change to use font representation
         //offset 57343 = DFFF for Private Use Area
 
         int markup = at(i).getMarkup() & markupToggles;
@@ -61,6 +62,7 @@ QString InscriptionTranscription::getInscrString(int index, int markupToggles) c
     }
     if(index>=0)
     {
+        //TODO modify to accommodate font setting?
         graphString = QChar(57343 + 1001); //add append point for indexed transcription
         if(index==count())
             markAsCurrent(graphString);

@@ -4,6 +4,10 @@
 //class representing  ec.inscriptionGraphs.markup and .graphemeId,
 //i.e. the transcription of one graph in an inscription
 
+//TODO - add punc and lingval
+//TODO - add font representation
+
+
 class GraphTranscription
 {
 public:

@@ -22,7 +22,7 @@ EditTranscriptionDialog::EditTranscriptionDialog(
     layout->addWidget(dialogMenuBar);
 
     //graph label
-    graphLabel = new QLabel();
+    graphLabel = new QLabel(this);
     graphLabel->setFixedSize(100, 100);
     layout->addWidget(graphLabel);
     refreshGraph();

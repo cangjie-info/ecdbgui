@@ -30,7 +30,7 @@ public:
 	QString getModeName() const; //returns name of mode as a string
 	double getZoom() const; //returns zoom
 	double getRotation() const ; //returns rotation
-        void getGraphImageList(const int imageIndex, QList<QImage>& imgList, QSize size);
+   void getGraphImageList(const int imageIndex, QList<QImage>& imgList, QSize size);
             //appends graph images to graphList, scaled to size, keeping aspect ratio
 
 public slots:
@@ -66,6 +66,7 @@ private:
 	void rotateAndCrop(const QImage& startImg, const BoundingBox* box, QImage& endImg);
 		//sets endImg to cropped and rotated startImg
 		//TODO reimplement other methods using rotateAndCrop
+      //TODO - figure out how this relates to cangjie_img.h !!
         bool confirmDelete(QString type); //Message box to confirm that consequent deletion
             //of graph or inscription images is ok. "type" names the type of image.
 	

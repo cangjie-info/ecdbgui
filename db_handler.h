@@ -6,6 +6,14 @@
 #include "surface_imgs.h"
 #include "surface_transcription.h"
 
+//TODO - This should be a namspace of functions, not a class.
+//TODO the variable db will be the only necessary member variable, and it
+//can be accessed as the globally accessible default database.
+
+//TODO: new methods: mergeGraphs, assign lingVal to inscr_graph, insert graph, search for graph strings
+//TODO: new methods: find and replace on graph strings.
+
+
 //class to handle ALL interaction with the db
 //AIM: no other class should have any QSqlQuery variables
 

@@ -28,6 +28,7 @@ InscriptionWidget::InscriptionWidget(QWidget* parent, QString trans, int transNu
 	layout->addWidget(numLabel);
 	
 	//transLabel
+   //TODO modify to accommodate font setting.
 	QLabel* transLabel = new QLabel(trans);
 	QFont font("HuaDong");
 	font.setPixelSize(30);

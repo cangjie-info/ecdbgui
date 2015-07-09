@@ -15,6 +15,8 @@
 
 //modal dialog for editing trancsriptions
 
+//TODO - send current graph id to graph window
+
 class EditTranscriptionDialog : public QDialog
 {
     Q_OBJECT

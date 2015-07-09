@@ -6,6 +6,7 @@
 /* reads and writes the configuration and state file ~/.ecdbgui
  * TODO modify so that it records surface (and other) id numbers
  * TODO modify so that it records the surface (and) list.
+ * TODO add font,
  */
 
 class ConfigHandler
