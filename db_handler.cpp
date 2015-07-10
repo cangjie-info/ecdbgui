@@ -17,8 +17,8 @@ bool DbHandler::connect()
 {
     db = QSqlDatabase::addDatabase("QMYSQL");
     db.setHostName("localhost");
-    db.setDatabaseName("ec");
-    db.setUserName("qt");
+    db.setDatabaseName("ecdb");
+    db.setUserName("ecdbgui");
     db.setPassword("abc123");
     if(!db.open())
     {
@@ -33,7 +33,7 @@ bool DbHandler::connect()
 bool DbHandler::setCorpus()
 {
     pCorpusQuery = new QSqlQuery();
-    pCorpusQuery->exec("SELECT id FROM surfaces WHERE publicationId=108 ORDER BY pubNumber;");
+    pCorpusQuery->exec("SELECT id FROM inscr_surfs WHERE pub_id=113 ORDER BY name;");
     if(pCorpusQuery->size() > 0)
     {
         qDebug() << pCorpusQuery->size() << "rows in the query result";
@@ -105,24 +105,31 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
     trans.clear();
 
     QString currentSurfId = pCorpusQuery->value(0).toString();
-    //Query ec.surfaces
+    //Query ecdb.inscr_surfs
 //***************
 //TODO - publicationId changes from string to int.
 // need JOIN with publicaitons table
 //***************
     QString surfaceQueryString(
-            "SELECT imageFile, x1, y1, x2, y2, rotation, publicationId, pubNumber, surfaceType FROM surfaces WHERE id=");
+            "SELECT img_file, x1, y1, x2, y2, rotation, pub_id, inscr_surfs.name, "
+            "surf_type_id, pubs.name FROM inscr_surfs "
+            "INNER JOIN pubs ON pub_id=pubs.id "
+            "WHERE inscr_surfs.id=");
     surfaceQueryString += currentSurfId;
     surfaceQueryString += ";";
     QSqlQuery surfaceQuery(surfaceQueryString);
     surfaceQuery.next(); //move first (and last, we hope)
     //get imageFile
-    surf.setImageFile(surfaceQuery.value(0).toString());
+    QString imgDirFile = surfaceQuery.value(9).toString().toLower()
+          + "/" + surfaceQuery.value(0).toString();
+    surf.setImageFile(imgDirFile);
+qDebug() << surfaceQuery.value(0).toString();
+qDebug() << surfaceQuery.value(9).toString();
     //get surface box
     //if x1 is NULL, then surface box is zero
     if(surfaceQuery.isNull(1))
     {
-        surf.setBox(QPoint(0,0), QPoint(0,0), 0/*, true*/);
+        surf.setBox(QPoint(0,0), QPoint(0,0), 0);
     }
     else
     {
@@ -135,8 +142,8 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
     trans.setPubNumber(surfaceQuery.value(7).toString());
     trans.setSurfaceType(surfaceQuery.value(8).toString());
 
-    //query ec.inscriptions
-    QString inscriptionQueryString("SELECT id, x1, y1, x2, y2, rotation FROM inscriptions WHERE surfaceId=");
+    //query ecdb.inscrs
+    QString inscriptionQueryString("SELECT id, x1, y1, x2, y2, rotation FROM inscrs WHERE inscr_surf_id=");
     inscriptionQueryString += currentSurfId;
     inscriptionQueryString += " ORDER BY id DESC;"; //DESC allows insertion at index=0
 
@@ -160,10 +167,14 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
 
         //for each inscription, query graphs.
         QString currentInscrId = inscriptionQuery.value(0).toString();
+qDebug() << currentInscrId;
         QString graphQueryString(
-                "SELECT x1, y1, x2, y2, rotation, markup, graphemeId FROM inscriptionGraphs WHERE inscriptionId=");
+                "SELECT x1, y1, x2, y2, rotation, markup, graph_id, ics3_glyph "
+                "FROM inscr_graphs LEFT JOIN graphs ON graph_id=graphs.id "
+                "WHERE inscr_id=");
         graphQueryString += currentInscrId;
-        graphQueryString += " ORDER BY graphNumber DESC;"; //DESC allows insertion at index=0
+        graphQueryString += " ORDER BY number DESC;"; //DESC allows insertion at index=0
+qDebug() << graphQueryString;
         QSqlQuery graphQuery(graphQueryString);
         while(graphQuery.next())
         {
@@ -171,6 +182,8 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
             GraphTranscription newGraph(
                     graphQuery.value(5).toInt(), 	//markup
                     graphQuery.value(6).toInt()); 	//grapheme
+            newGraph.setGlyph(graphQuery.value(7).toString());
+qDebug() << graphQuery.value(6).toInt();
             trans[0].prepend(newGraph);
             //add graph bbox to inscription
             if(!graphQuery.isNull(0)) //if non-null graph box
@@ -179,7 +192,7 @@ void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) cons
                         BoundingBox(
                                 QPoint(graphQuery.value(0).toInt(), graphQuery.value(1).toInt()),
                                 QPoint(graphQuery.value(2).toInt(), graphQuery.value(3).toInt()),
-                                graphQuery.value(4).toInt()/*, false*/),
+                                graphQuery.value(4).toInt()),
                         0); 	//prepend (i.e. insert at index 0) since we used DESC
                 trans[0][0].setCanHaveImage(true);
             }
@@ -198,7 +211,7 @@ db.transaction(); //begin transaction
 
     //UPDATE bbox in ec.surface
     QString surfaceUpdateString = QString(
-            "UPDATE surfaces SET x1=%1, y1=%2, x2=%3, y2=%4, rotation=%5 WHERE id=%6;")
+            "UPDATE inscr_surfs SET x1=%1, y1=%2, x2=%3, y2=%4, rotation=%5 WHERE id=%6;")
             .arg(imgs.x())  //x1
             .arg(imgs.y())  //y1
             .arg(imgs.x()+imgs.width())     //x2
@@ -209,25 +222,28 @@ db.transaction(); //begin transaction
     if(!surfaceUpdateQuery.exec(surfaceUpdateString))
     {
   db.rollback(); //TODO handle as error!!
+qDebug() << "ROLLBACK!!";
+qDebug() << surfaceUpdateString;
+
         return;
     }
 
     //*** DELETE OLD INSCRIPTIONS AND GRAPHS ***//
 
     //DELETE query for corresponding inscriptions and graphs
-            //NB the two tables in the query are now related
-            //relation is set to CASCADE DELETE - does the query require modifcation?
+            //inscr_graphs is set to cascade delete when corresponding inscrs are deleted.
     QString inscriptionDeleteString = QString(
-            "DELETE inscriptions, inscriptionGraphs "
-            "FROM inscriptions LEFT JOIN inscriptionGraphs "
-            "ON inscriptions.id=inscriptionGraphs.inscriptionId "
-            "WHERE inscriptions.surfaceId=%1;")
+            "DELETE inscrs "
+            "FROM inscrs "
+            "WHERE inscrs.inscr_surf_id=%1;")
             .arg(surfaceId); //surface id
     QSqlQuery inscriptionDeleteQuery;
     if(!inscriptionDeleteQuery.exec(inscriptionDeleteString))
     {
         qDebug() << inscriptionDeleteQuery.lastError().text();
     db.rollback(); //TODO handle as error - return false? or use popup dialog?
+ qDebug() << "ROLLBACK!!";
+ qDebug() << inscriptionDeleteString;
         return;
     }
 
@@ -242,9 +258,9 @@ db.transaction(); //begin transaction
         //*** NEW INSCRIPTION ***//
 
         QString insertInscriptionString = QString(
-                "INSERT INTO inscriptions "
-                "SET serialNumber=%1, "
-                    "surfaceId=%2")
+                "INSERT INTO inscrs "
+                "SET number=%1, "
+                    "inscr_surf_id=%2")
                 .arg(transIndex + 1) //1-based index in ec, not zero based
                 .arg(surfaceId);
         bool inscrHasImage = false;
@@ -275,6 +291,8 @@ db.transaction(); //begin transaction
         if(!insertInscriptionQuery.exec(insertInscriptionString))
         {
             db.rollback(); //TODO handle as error
+qDebug() << "ROLLBACK!!";
+qDebug() << insertInscriptionString;
             return;
         }
 
@@ -302,8 +320,8 @@ db.transaction(); //begin transaction
             int graphImgsIndex = 0;
 
             QString insertGraphsString = QString(
-                    "INSERT INTO inscriptionGraphs "
-                    "(inscriptionId, graphNumber, x1, y1, x2, y2, rotation, markup, graphemeId) "
+                    "INSERT INTO inscr_graphs "
+                    "(inscr_id, number, x1, y1, x2, y2, rotation, markup, graph_id) "
                     "VALUES ");             //in format (1, 2, 3, 4, 5, 6, 7, 8, 9), ...(...);
             for (int graphIndex = 0; graphIndex < numberOfGraphs; graphIndex++)
             {
@@ -360,6 +378,8 @@ db.transaction(); //begin transaction
             QSqlQuery insertGraphsQuery;
             if(!insertGraphsQuery.exec(insertGraphsString))
             {
+qDebug() << "ROLLBACK!!";
+qDebug() << insertGraphsString;
                 db.rollback(); //TODO handle as error.
                 return;
             }
@@ -368,18 +388,22 @@ db.transaction(); //begin transaction
 db.commit(); //done - yeay!
 }
 
-int DbHandler::getGrapheme(QString searchString) //static
+void DbHandler::getGrapheme(QString searchString, int &grapheme, QString &glyph) //static
 {
     //TODO - search using things other than name field.
     //maybe write alternate function that
     QSqlQuery signListQuery;
-    QString queryString = QString("SELECT id FROM signList WHERE name=\"%1\";")
+    QString queryString = QString("SELECT id, ics3_glyph "
+                                  "FROM graphs WHERE name=\"%1\";")
                           .arg(searchString);
     signListQuery.exec(queryString);
     if(signListQuery.first())
-        return signListQuery.value(0).toInt();
-    else
-        return 0;
+    {
+        grapheme = signListQuery.value(0).toInt();
+        glyph = signListQuery.value(1).toString();
+    }
+    else grapheme = 0;
+    return;
 }
 //tries to find grapheme in ec.signList corresponding to searchString
 //for now, only searches name field

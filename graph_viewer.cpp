@@ -24,7 +24,9 @@ void GraphViewer::processInput()
 
     //repopulate
     QString inputString = inputBox->text().trimmed();
-    int grapheme = DbHandler::getGrapheme(inputString);
+    int grapheme;
+    QString glyph;
+    DbHandler::getGrapheme(inputString, grapheme, glyph);
     QList<int> graphList;
     DbHandler::findGraphemeInstances(graphList, grapheme);
     while(!graphList.isEmpty())

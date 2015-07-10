@@ -23,6 +23,9 @@ QString InscriptionTranscription::getInscrString(int index, int markupToggles) c
     QString graphString;
     for(int i=0; i<count(); i++)
     {
+       graphString = at(i).getGlyph();
+
+/*
         int grapheme = at(i).getGrapheme();
         if(grapheme == 0)
             //null transcription, use space~dot
@@ -30,7 +33,7 @@ QString InscriptionTranscription::getInscrString(int index, int markupToggles) c
         graphString = QChar(57343 + at(i).getGrapheme());
         //TODO change to use font representation
         //offset 57343 = DFFF for Private Use Area
-
+*/
         int markup = at(i).getMarkup() & markupToggles;
 
         //mark graph uncertain
@@ -63,7 +66,7 @@ QString InscriptionTranscription::getInscrString(int index, int markupToggles) c
     if(index>=0)
     {
         //TODO modify to accommodate font setting?
-        graphString = QChar(57343 + 1001); //add append point for indexed transcription
+        graphString = "*"; //add append point for indexed transcription
         if(index==count())
             markAsCurrent(graphString);
         inscrString += graphString;

@@ -19,6 +19,7 @@ public:
     void processLine(const QString line); //processes line of config file
 private:
     int lastSurf;
+    QString font;
 };
 
 #endif // CONFIG_HANDLER_H

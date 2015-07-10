@@ -8,6 +8,7 @@
 ConfigHandler::ConfigHandler()
     : lastSurf(0)
 {
+    font = "ICS3";
     //check to see whether config file exists
     QDir home = QDir().home();
     QFile configFile;

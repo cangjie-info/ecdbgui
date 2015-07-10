@@ -44,7 +44,7 @@ public:
     //returns ordinal position of current surface in corpus
     int getCurrentSurfaceId() const; //returns ec.surfaces.id
     void readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) const; //gets currentSurface via DbHandler
-    static int getGrapheme(QString searchString);
+    static void getGrapheme(QString searchString, int& grapheme, QString& glyph);
     //tries to find grapheme in ec.signList corresponding to searchString
     //for now, only searches name field
     //returns grapheme id

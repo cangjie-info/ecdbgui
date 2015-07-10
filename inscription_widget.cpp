@@ -30,7 +30,7 @@ InscriptionWidget::InscriptionWidget(QWidget* parent, QString trans, int transNu
 	//transLabel
    //TODO modify to accommodate font setting.
 	QLabel* transLabel = new QLabel(trans);
-	QFont font("HuaDong");
+   QFont font("ICS3");
 	font.setPixelSize(30);
 	transLabel->setFont(font);
 	transLabel->setAlignment(Qt::AlignLeft);

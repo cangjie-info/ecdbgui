@@ -46,3 +46,12 @@ bool GraphTranscription::getCanHaveImage() const
 	return canHaveImage;
 }
 
+void GraphTranscription::setGlyph(QString newGlyph)
+{
+   glyph = newGlyph;
+}
+
+QString GraphTranscription::getGlyph() const
+{
+   return glyph;
+}

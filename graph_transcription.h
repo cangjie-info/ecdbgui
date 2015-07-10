@@ -1,6 +1,8 @@
 #ifndef GRAPH_TRANSCRIPTION_H 
 #define GRAPH_TRANSCRIPTION_H
 
+#include <QString>
+
 //class representing  ec.inscriptionGraphs.markup and .graphemeId,
 //i.e. the transcription of one graph in an inscription
 
@@ -30,12 +32,15 @@ public:
 	void setGrapheme(int newGrapheme);
 	void report() const;
 	void setCanHaveImage(bool can); //set canHanveImage member variable
-        void toggleCanHaveImage(); //toggles canHaveImage variable
-        bool getCanHaveImage() const; //get canHaveImage member variable
+   void toggleCanHaveImage(); //toggles canHaveImage variable
+   bool getCanHaveImage() const; //get canHaveImage member variable
+   void setGlyph(QString newGlyph);
+   QString getGlyph() const;
 private:
-	int markup; //from ec
-	int grapheme; //from ec
-	bool canHaveImage; //used to mark graphs or other inline elements 
+   int markup; //from ecdb
+   int grapheme; //from ecdb
+   QString glyph; //from ecdb, but depends on font setting.
+   bool canHaveImage; //used in ecdbgui to mark graphs or other inline elements
 		//in the transcription that have no corresponding bounding box
 		//in the surface image
 		//TODO remove nullBox apparatus from imageLabel.

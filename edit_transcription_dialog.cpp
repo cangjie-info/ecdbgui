@@ -29,7 +29,7 @@ EditTranscriptionDialog::EditTranscriptionDialog(
 
     //transcription label
     transLabel = new QLabel(this);
-    QFont font("HuaDong");
+    QFont font("ICS3");
     font.setPixelSize(30);
     transLabel->setFont(font);
     transLabel->setAlignment(Qt::AlignLeft);
@@ -259,10 +259,13 @@ void EditTranscriptionDialog::processInput()
 
 void EditTranscriptionDialog::processGraph(QString inputString)
 {
-    int grapheme = DbHandler::getGrapheme(inputString);
+    int grapheme;
+    QString glyph;
+    DbHandler::getGrapheme(inputString, grapheme, glyph);
     if(grapheme > 0)
     {
         transCopy.insert(index, GraphTranscription(0, grapheme));
+        transCopy[index].setGlyph(glyph);
         transCopy[index].setCanHaveImage(true);
         index++;
     }
