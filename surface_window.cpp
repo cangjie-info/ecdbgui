@@ -42,6 +42,9 @@ SurfaceWindow::SurfaceWindow()
     transScrollArea->setMinimumWidth(500);
     transcriptionsDock->setWidget(transScrollArea);
 
+    fonts = config->getFontList();
+    font = config->getFont();
+
     createActions();
     createMenus();
 
@@ -79,7 +82,7 @@ void SurfaceWindow::closeEvent(QCloseEvent* event)
 
 void SurfaceWindow::newSurf()
 {
-    db.readSurface(surf, trans);
+    db.readSurface(surf, trans, font);
 
     //TODO - decide if locked is useful or not
     locked = true;
@@ -89,7 +92,7 @@ void SurfaceWindow::newSurf()
     //delete old transcription window and create new one
     if(transcriptionPane)
         delete transcriptionPane;
-    transcriptionPane = new TranscriptionPane(&trans, &surf);
+    transcriptionPane = new TranscriptionPane(&trans, &surf, font);
     //connect ImageLabel signals to transcription window slots
     connect(imagePane, SIGNAL(inscrImgListModified()), transcriptionPane, SLOT(refresh()));
     connect(imagePane, SIGNAL(inscrImgListModified()), this, SLOT(setModified()));
@@ -204,6 +207,7 @@ void SurfaceWindow::editTranscription()
     imagePane->getGraphImageList(imageIndex, imgList, QSize(100, 100));
 
     EditTranscriptionDialog dialog(this, pInscrTrans, imgList);
+//    dialog.setFontTo(font);
 
     if(dialog.exec())
     {
@@ -226,6 +230,7 @@ void SurfaceWindow::statusUpdate()
             .arg(imagePane->getModeName())
             .arg(locked ? "" : "UN")
             .arg(modified ? " | MODIFIED" : "");
+    statusText += QString("font: %1").arg(font);
     statusBar()->showMessage(statusText);
 }
 
@@ -392,6 +397,16 @@ void SurfaceWindow::createActions()
     saveAction = new QAction("&Save changes to database", this);
     saveAction->setShortcut(tr("Ctrl+S"));
     connect(saveAction, SIGNAL(triggered()), this, SLOT(save()));
+
+    foreach (QString fontName, fonts)
+    {
+       QAction* setFontAction = new QAction(fontName, this);
+       setFontAction->setData(fontName);
+ //    NO!!  connect(setFontAction, SIGNAL(triggered()), this, SLOT(changeFont()));
+ //   confusingly, it is the submenu, not the action that needs to be connected. WHY??
+       setFontActionList.append(setFontAction);
+    }
+
 }
 
 void SurfaceWindow::createMenus()
@@ -437,4 +452,20 @@ void SurfaceWindow::createMenus()
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(toggleIndexNumbersAction);
     viewMenu->addAction(toggleFullScreenAction);
+    fontSubmenu = viewMenu->addMenu("Set &font");
+    foreach (QAction* fontAction, setFontActionList)
+    {
+       fontSubmenu->addAction(fontAction);
+    }
+    connect(fontSubmenu, SIGNAL(triggered(QAction *)),
+            this, SLOT(changeFont(QAction *)));
+}
+
+void SurfaceWindow::changeFont(QAction *fontAction)
+{
+   font = fontAction->data().toString();
+   config->setFont(font);
+   QMessageBox msgBox;
+   msgBox.setText("The new font will be applied on the next surface load.");
+   msgBox.exec();
 }

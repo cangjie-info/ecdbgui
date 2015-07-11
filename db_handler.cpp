@@ -98,7 +98,7 @@ int DbHandler::getCurrentSurfaceId() const //returns ec.surfaces.id
     return pCorpusQuery->value(0).toInt();
 }
 
-void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans) const
+void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans, QString font) const
 {
     //clear both lists of inscriptions (which deletes graphs too)
     surf.deleteAllInscriptions();
@@ -168,10 +168,10 @@ qDebug() << surfaceQuery.value(9).toString();
         //for each inscription, query graphs.
         QString currentInscrId = inscriptionQuery.value(0).toString();
 qDebug() << currentInscrId;
-        QString graphQueryString(
-                "SELECT x1, y1, x2, y2, rotation, markup, graph_id, ics3_glyph "
-                "FROM inscr_graphs LEFT JOIN graphs ON graph_id=graphs.id "
-                "WHERE inscr_id=");
+        QString graphQueryString("SELECT x1, y1, x2, y2, rotation, markup, graph_id, ");
+        graphQueryString += font;
+        graphQueryString += " FROM inscr_graphs LEFT JOIN graphs ON graph_id=graphs.id "
+                "WHERE inscr_id=";
         graphQueryString += currentInscrId;
         graphQueryString += " ORDER BY number DESC;"; //DESC allows insertion at index=0
 qDebug() << graphQueryString;

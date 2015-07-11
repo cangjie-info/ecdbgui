@@ -18,7 +18,9 @@
 class InscriptionWidget : public QWidget
 {
 public:
-		InscriptionWidget(QWidget* parent, QString trans, int transNumber, int imgNumber, bool isCurrent); //constructor, sets font and other features
+      InscriptionWidget(QWidget* parent, QString trans,
+                        int transNumber, int imgNumber,
+                        bool isCurrent, QString font); //constructor, sets font and other features
 		void setCurrent(bool isCurrent); //changes appearance of label to indicate 
 			//current inscription or not.
 		int getImageIndex() const; //returns index of corresponding image
@@ -26,5 +28,6 @@ private:
 	int imgIndex; // stores index of image correpsonding to transNumber
 		// = -1 if clear
 		// = -2 if "no image"
+   QString fontName;
 };
 #endif

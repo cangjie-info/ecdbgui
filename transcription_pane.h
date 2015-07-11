@@ -28,7 +28,7 @@ class TranscriptionPane : public QWidget
 {
 	Q_OBJECT
 public:
-	TranscriptionPane(SurfaceTranscription* const trans, const SurfaceImgs* const imgs); //constructor
+   TranscriptionPane(SurfaceTranscription* const trans, const SurfaceImgs* const imgs, QString font); //constructor
 		//creates surfaceLabel and calls refresh()
 //NO. PUT IN VIEWER.	void editCurrentInscription(); //creates new pop-up dialog to edit the current inscription
 	int getCurrentTranscriptionIndex() const; //returns index of current inscription transcription
@@ -76,6 +76,7 @@ private:
 	QLabel inscrImgLabel; //hold img of current inscription if there is one.
 	const SurfaceImgs* const surfImgs;
 	QVBoxLayout* layout; //top-level layout for widget
+   QString font; //name of font in use
 };
 
 #endif

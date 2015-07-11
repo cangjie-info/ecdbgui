@@ -56,6 +56,7 @@ private slots:
     void toggleFullScreen();
     void save(); //writes surface to db
     void discardChanges(); //discards all changes and reloads surface from db
+    void changeFont(QAction* fontAction); //changes font according to fontActon.data
 
 private:
     void newSurf(); //reads surface from db
@@ -107,13 +108,15 @@ private:
     QAction* editTranscriptionAction; //opens dialog window for editing a single insciption
     QAction* copyTransAction; //duplicates current inscription transcription and
         //inserts it at current index
-            //TODO QAction* setCorpus; //sets WHERE clause for querying surfaces table
-            //menus
-            QMenu* fileMenu;
+    QList<QAction*> setFontActionList; //one action for each possible font
+
+    //MENUS
+    QMenu* fileMenu;
     QMenu* editMenu;
     QMenu* zoomMenu;
     QMenu* rotateMenu;
     QMenu* viewMenu;
+    QMenu* fontSubmenu;
 
     //private data members
     ConfigHandler* config; //handles interaction with configuration file
@@ -134,6 +137,9 @@ private:
     bool locked; //prevents any modification TODO: differnet kind of locks, e.g. that allows
     //reading but not writing
     bool modified; //true if either surf or trans has been modified since last save
+
+    QStringList fonts;
+    QString font;
 }; 
 
 #endif

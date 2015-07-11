@@ -3,8 +3,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-InscriptionWidget::InscriptionWidget(QWidget* parent, QString trans, int transNumber, int imgNumber, bool isCurrent)
-	: QWidget(parent), imgIndex(imgNumber)
+InscriptionWidget::InscriptionWidget(QWidget* parent, QString trans, int transNumber, int imgNumber, bool isCurrent, QString fontName)
+   : QWidget(parent), imgIndex(imgNumber), fontName(fontName)
 {
 	//set name
 	setObjectName("IW");
@@ -30,7 +30,7 @@ InscriptionWidget::InscriptionWidget(QWidget* parent, QString trans, int transNu
 	//transLabel
    //TODO modify to accommodate font setting.
 	QLabel* transLabel = new QLabel(trans);
-   QFont font("ICS3");
+   QFont font(fontName);
 	font.setPixelSize(30);
 	transLabel->setFont(font);
 	transLabel->setAlignment(Qt::AlignLeft);

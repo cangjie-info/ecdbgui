@@ -4,8 +4,8 @@
 #include <QChar>
 #include <QVBoxLayout>
 
-TranscriptionPane::TranscriptionPane(SurfaceTranscription* trans, const SurfaceImgs* const imgs)
-    : surfTrans(trans), surfImgs(imgs), layout(NULL)
+TranscriptionPane::TranscriptionPane(SurfaceTranscription* trans, const SurfaceImgs* const imgs, QString font)
+    : surfTrans(trans), surfImgs(imgs), layout(NULL), font(font)
 {
     layout = new QVBoxLayout();
     setLayout(layout);
@@ -58,8 +58,8 @@ void TranscriptionPane::refresh()
             imgNumber = -1; //for blank=""
         if(surfTrans->at(transIndex).getCanHaveImage() == false)
             imgNumber = -2; //for "no image"
-        InscriptionWidget* inscrWidget = new
-                                         InscriptionWidget(this, trans, transIndex, imgNumber, false);
+        InscriptionWidget* inscrWidget =
+              new InscriptionWidget(this, trans, transIndex, imgNumber, false, font);
         if(transIndex == currentInscription)
         {
             inscrWidget->setCurrent(true);
@@ -79,7 +79,7 @@ void TranscriptionPane::refresh()
 
     //add "append inscription" label
     InscriptionWidget* appendInscrWidget = new
-                                           InscriptionWidget(this, "append new", surfTrans->count(), -1, false);
+                                           InscriptionWidget(this, "append new", surfTrans->count(), -1, false, font);
     if(currentInscription == surfTrans->count())
     {
         appendInscrWidget->setCurrent(true);
