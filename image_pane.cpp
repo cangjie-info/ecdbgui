@@ -305,7 +305,10 @@ void ImagePane::paintEvent(QPaintEvent* event)
     QFont font;
     font.setPixelSize(30/zoom); //TODO make font size dependent on resolution
     painter.setFont(font);
-    painter.setPen(Qt::red);
+    QPen pen;
+    pen.setWidth(0);
+    pen.setColor(Qt::red);
+    painter.setPen(pen);
     //make a list of bounding boxes according to current mode
     BoxList currentBoxList; //this is a list of all boxes
     currentBoxList.clear();
@@ -348,7 +351,10 @@ void ImagePane::paintEvent(QPaintEvent* event)
         //pen color is red; set the pen-color to green if this is the current box.
         if(i==currentBoxIndex)
         {
-            painter.setPen(Qt::green);
+            QPen pen;
+            pen.setWidth(0);
+            pen.setColor(Qt::green);
+            painter.setPen(pen);
         }
         painter.drawRect(currentBox);
         //and add an (optional) index number
@@ -358,6 +364,9 @@ void ImagePane::paintEvent(QPaintEvent* event)
                              Qt::AlignBottom,  QString("%1").arg(i+1)); //visible index, so base = 1, not zero
         }
         //return pen color to red (might be green)
+        QPen pen;
+        pen.setWidth(0);
+        pen.setColor(Qt::red);
         painter.setPen(Qt::red);
     }
 
