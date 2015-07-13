@@ -17,25 +17,22 @@ SurfaceWindow::SurfaceWindow()
     else
         qDebug() << "Connection to db failed.";
 
-    if(db.setCorpus())
-        qDebug() << "Corpus set.";
-    else
-        qDebug() << "No corpus found.";
+    currentSurfId = config->getLastSurf();
 
     //create ImageLabel - for displaying the surface images
     imagePane = new ImagePane(this, &surf); //surf is passed as pointer
     //so that imageLabel can manipulate it.
 
     //TODO dock area to hold metadata and control buttons.
-    metaDataDock = new QDockWidget(this);
-    metaDataDock->setAllowedAreas(Qt::RightDockWidgetArea);
-    addDockWidget(Qt::RightDockWidgetArea, metaDataDock);
+    metadataDock = new QDockWidget("Surface metadata", this);
+    metadataDock->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, metadataDock);
     //TODO populate with data and controls.
 
     //create dock and scroll area for transWindow
     //TODO - currently, the dock can be closed and there is no way to
     //reopen it => fix by adding a Window menu with a show dock action.
-    transcriptionsDock = new QDockWidget(this);
+    transcriptionsDock = new QDockWidget("Surface transcriptions", this);
     transcriptionsDock->setAllowedAreas(Qt::LeftDockWidgetArea);
     addDockWidget(Qt::LeftDockWidgetArea, transcriptionsDock);
     transScrollArea = new QScrollArea(this);
@@ -57,7 +54,7 @@ SurfaceWindow::SurfaceWindow()
     showMaximized();
 
     //TODO replace this with getSavedSurfList() and make moveToSurf a method of this.
-    db.moveToSurf(config->getLastSurf());
+//    db.moveToSurf(config->getLastSurf());
 
     newSurf();
 }
@@ -74,7 +71,7 @@ void SurfaceWindow::closeEvent(QCloseEvent* event)
     }
     //TODO modify to save current list of surfs, and the current surf
       //saving as id numbers.
-    config->setLastSurf(db.getPositionInCorpus());
+    config->setLastSurf(currentSurfId);
     config->save();
     event->accept();
 
@@ -82,7 +79,7 @@ void SurfaceWindow::closeEvent(QCloseEvent* event)
 
 void SurfaceWindow::newSurf()
 {
-    db.readSurface(surf, trans, font);
+    db.readSurface(currentSurfId, surf, trans, font);
 
     //TODO - decide if locked is useful or not
     locked = true;
@@ -115,24 +112,55 @@ void SurfaceWindow::newSurf()
     transScrollArea->setWidget(transcriptionPane);
     transcriptionPane->show();
 
-    statusUpdate();
+
 
     //TODO update for metadata dock
+    //TODO set to inscription mode if there is alread a bounding box.
+    if(!surf.isNull()) imagePane->modeDown();
+    statusUpdate();
+}
+
+void SurfaceWindow::saveWarning()
+{
+   QMessageBox msgBox(this);
+   msgBox.setText("Save or discard changes before moving to a new surface.");
+   msgBox.exec();
 }
 
 void SurfaceWindow::advance()
 {
-    if(imagePane->getMode() == ImagePane::SURFACE) //can only advance to a new surface from SURFACE mode
+//  if(imagePane->getMode() == ImagePane::SURFACE) //can only advance to a new surface from SURFACE mode
     {
-        if(modified)
-        {
-            QMessageBox msgBox(this);
-            msgBox.setText("Save or discard changes before moving to a new surface.");
-            msgBox.exec();
-        }
+        if(modified) saveWarning();
         else
         {
-            db.nextSurface(); //stays put if already on last record
+            currentSurfId = db.getNextSurfIdInPub(currentSurfId); //stays put if already on last record
+            newSurf();
+        }
+    }
+}
+
+void SurfaceWindow::advance10()
+{
+   {
+        if(modified) saveWarning();
+        else
+        {
+            currentSurfId = db.getNext10SurfIdInPub(currentSurfId);
+                  //stays put if already within 10 of last record
+            newSurf();
+        }
+    }
+}
+
+void SurfaceWindow::advance100()
+{
+   {
+        if(modified) saveWarning();
+        else
+        {
+            currentSurfId = db.getNext100SurfIdInPub(currentSurfId);
+                  //stays put if already within 100 of last record
             newSurf();
         }
     }
@@ -140,26 +168,38 @@ void SurfaceWindow::advance()
 
 void SurfaceWindow::back()
 {
-    if(imagePane->getMode() == ImagePane::SURFACE)
-    {
-        if(modified)
-        {
-            QMessageBox msgBox(this);
-            msgBox.setText("Save or discard changes before moving to a new surface.");
-            msgBox.exec();
-        }
+        if(modified) saveWarning();
         else
         {
-            db.previousSurface(); //stays put if already on first record
+            currentSurfId = db.getPreviousSurfIdInPub(currentSurfId);
             newSurf();
         }
-    }
+}
+
+void SurfaceWindow::back10()
+{
+   if(modified) saveWarning();
+   else
+   {
+       currentSurfId = db.getPrevious10SurfIdInPub(currentSurfId);
+       newSurf();
+   }
+}
+
+void SurfaceWindow::back100()
+{
+   if(modified) saveWarning();
+   else
+   {
+       currentSurfId = db.getPrevious100SurfIdInPub(currentSurfId);
+       newSurf();
+   }
 }
 
 void SurfaceWindow::save()
 {
 //TODO    removeTrailingNulls; (This is probably not necessary - check)
-    db.writeSurface(surf, trans);
+    db.writeSurface(currentSurfId, surf, trans);
     modified = false;
     statusUpdate();
 }
@@ -275,9 +315,25 @@ void SurfaceWindow::createActions()
     advanceAction->setShortcut(tr("a"));
     connect(advanceAction, SIGNAL(triggered()), this, SLOT(advance()));
 
+    advance10Action = new QAction("Advance 10", this);
+    advance10Action->setShortcut(tr("Shift+a"));
+    connect(advance10Action, SIGNAL(triggered()), this, SLOT(advance10()));
+
+    advance100Action = new QAction("Advance 100", this);
+    advance100Action->setShortcut(tr("Ctrl+a"));
+    connect(advance100Action, SIGNAL(triggered()), this, SLOT(advance100()));
+
     backAction = new QAction(tr("&Back"), this);
     backAction->setShortcut(tr("b"));
     connect(backAction, SIGNAL(triggered()), this, SLOT(back()));
+
+    back10Action = new QAction(tr("Back 10"), this);
+    back10Action->setShortcut(tr("Shift+b"));
+    connect(back10Action, SIGNAL(triggered()), this, SLOT(back10()));
+
+    back100Action = new QAction(tr("Back 100"), this);
+    back100Action->setShortcut(tr("Ctrl+b"));
+    connect(back100Action, SIGNAL(triggered()), this, SLOT(back100()));
 
     modeDownAction = new QAction(tr("Mode Down"), this);
     modeDownAction->setShortcut(tr("Space"));
@@ -422,8 +478,12 @@ void SurfaceWindow::createMenus()
     editMenu->addAction(boxBackAction);
     editMenu->addAction(deleteCurrentBoxAction);
     editMenu->addAction(advanceAction);
+    editMenu->addAction(advance10Action);
+    editMenu->addAction(advance100Action);
     editMenu->addAction(unlockAction);
     editMenu->addAction(backAction);
+    editMenu->addAction(back10Action);
+    editMenu->addAction(back100Action);
     editMenu->addAction(modeUpAction);
     editMenu->addAction(modeDownAction);
     editMenu->addAction(toggleCanHaveImageAction);

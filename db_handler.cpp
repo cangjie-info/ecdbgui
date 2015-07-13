@@ -30,7 +30,8 @@ bool DbHandler::connect()
 }
 
 //TODO change to selecting a single surface by id number.
-bool DbHandler::setCorpus()
+/* DELETE
+bool DbHandler::setSurf()
 {
     pCorpusQuery = new QSqlQuery();
     pCorpusQuery->exec("SELECT id FROM inscr_surfs WHERE pub_id=113 ORDER BY name;");
@@ -43,29 +44,122 @@ bool DbHandler::setCorpus()
         return false;
 }
 
+*/
+
 //TODO get rid of this, and do a nextInPublication method, et seq.
-bool DbHandler::nextSurface()
+int DbHandler::getNextSurfIdInPub(int currentId)
 {
-    if(pCorpusQuery->next())
-        return true;
-    else
-    {
-        pCorpusQuery->last(); //move back to last
-        return false;
-    }
+   //get id of next item in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name > (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name ASC"
+                       " LIMIT 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
 }
 
-bool DbHandler::previousSurface()
+int DbHandler::getNext10SurfIdInPub(int currentId)
 {
-    if(pCorpusQuery->previous())
-        return true;
-    else
-    {
-        pCorpusQuery->first(); //move back to first
-        return false;
-    }
+   //get id of item 10 forward in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name > (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name ASC"
+                       " LIMIT 9, 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
 }
 
+int DbHandler::getNext100SurfIdInPub(int currentId)
+{
+   //get id of item 100 forward in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name > (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name ASC"
+                       " LIMIT 99, 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
+}
+
+int DbHandler::getPreviousSurfIdInPub(int currentId)
+{   
+   //get id of previous item in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name < (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name DESC"
+                       " LIMIT 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
+}
+
+int DbHandler::getPrevious10SurfIdInPub(int currentId)
+{
+   //get id of item 10 back in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name < (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name DESC"
+                       " LIMIT 9, 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
+}
+
+int DbHandler::getPrevious100SurfIdInPub(int currentId)
+{
+   //get id of item 100 back in the same publication
+   QString queryString = QString("SELECT id FROM inscr_surfs WHERE pub_id="
+                       "(SELECT pub_id FROM inscr_surfs WHERE id=%1)"
+                       " AND name < (SELECT name FROM inscr_surfs WHERE id=%1)"
+                       " ORDER BY name DESC"
+                       " LIMIT 99, 1;").arg(currentId);
+   QSqlQuery query(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return currentId;
+   }
+}
 void DbHandler::moveToSurf(int index)
 {
     if(!pCorpusQuery->seek(index))
@@ -98,25 +192,25 @@ int DbHandler::getCurrentSurfaceId() const //returns ec.surfaces.id
     return pCorpusQuery->value(0).toInt();
 }
 
-void DbHandler::readSurface(SurfaceImgs& surf, SurfaceTranscription& trans, QString font) const
+void DbHandler::readSurface(int surfId, SurfaceImgs& surf,
+                            SurfaceTranscription& trans, QString font) const
 {
     //clear both lists of inscriptions (which deletes graphs too)
     surf.deleteAllInscriptions();
     trans.clear();
 
-    QString currentSurfId = pCorpusQuery->value(0).toString();
     //Query ecdb.inscr_surfs
 //***************
 //TODO - publicationId changes from string to int.
 // need JOIN with publicaitons table
 //***************
-    QString surfaceQueryString(
+    QString surfaceQueryString = QString(
             "SELECT img_file, x1, y1, x2, y2, rotation, pub_id, inscr_surfs.name, "
             "surf_type_id, pubs.name FROM inscr_surfs "
             "INNER JOIN pubs ON pub_id=pubs.id "
-            "WHERE inscr_surfs.id=");
-    surfaceQueryString += currentSurfId;
-    surfaceQueryString += ";";
+            "WHERE inscr_surfs.id=%1;").arg(surfId);
+
+qDebug() << surfaceQueryString;
     QSqlQuery surfaceQuery(surfaceQueryString);
     surfaceQuery.next(); //move first (and last, we hope)
     //get imageFile
@@ -143,11 +237,13 @@ qDebug() << surfaceQuery.value(9).toString();
     trans.setSurfaceType(surfaceQuery.value(8).toString());
 
     //query ecdb.inscrs
-    QString inscriptionQueryString("SELECT id, x1, y1, x2, y2, rotation FROM inscrs WHERE inscr_surf_id=");
-    inscriptionQueryString += currentSurfId;
+    QString inscriptionQueryString = QString(
+             "SELECT id, x1, y1, x2, y2, rotation "
+             "FROM inscrs WHERE inscr_surf_id=%1").arg(surfId);
     inscriptionQueryString += " ORDER BY id DESC;"; //DESC allows insertion at index=0
 
     QSqlQuery inscriptionQuery(inscriptionQueryString);
+qDebug() << inscriptionQueryString;
     while(inscriptionQuery.next())
     {
         //add inscription to trans, no matter what
@@ -202,10 +298,9 @@ qDebug() << graphQuery.value(6).toInt();
     }
 }
 
-void DbHandler::writeSurface(SurfaceImgs& imgs, SurfaceTranscription& trans)
+void DbHandler::writeSurface(int surfId, SurfaceImgs& imgs, SurfaceTranscription& trans)
 {
 db.transaction(); //begin transaction
-    QString surfaceId = pCorpusQuery->value(0).toString();
 
     //*** SURFACE ***//
 
@@ -217,7 +312,7 @@ db.transaction(); //begin transaction
             .arg(imgs.x()+imgs.width())     //x2
             .arg(imgs.y()+imgs.height())    //y2
             .arg(imgs.getRotation())        //rotation
-            .arg(surfaceId); //id
+            .arg(surfId); //id
     QSqlQuery surfaceUpdateQuery;
     if(!surfaceUpdateQuery.exec(surfaceUpdateString))
     {
@@ -236,7 +331,7 @@ qDebug() << surfaceUpdateString;
             "DELETE inscrs "
             "FROM inscrs "
             "WHERE inscrs.inscr_surf_id=%1;")
-            .arg(surfaceId); //surface id
+            .arg(surfId); //surface id
     QSqlQuery inscriptionDeleteQuery;
     if(!inscriptionDeleteQuery.exec(inscriptionDeleteString))
     {
@@ -262,7 +357,7 @@ qDebug() << surfaceUpdateString;
                 "SET number=%1, "
                     "inscr_surf_id=%2")
                 .arg(transIndex + 1) //1-based index in ec, not zero based
-                .arg(surfaceId);
+                .arg(surfId);
         bool inscrHasImage = false;
         if(imgs.inscriptionCount() > 0
            && imgsIndex < imgs.inscriptionCount()-1

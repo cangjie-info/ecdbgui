@@ -45,11 +45,15 @@ public slots:
 signals:
     void unlockSignal();
 private slots:
-    void advance(); //if in SURFACE mode
-    //requests DbHandler to advance to next surface
+    void advance();
+    //requests id of next surface in pub from dbHandler
     //reads new surface
     //and sets image in imageLabel.
+    void advance10();
+    void advance100();
     void back();
+    void back10();
+    void back100();
     //TODO advance(int jump), back(int jump), advanceTenPc(), moveLast(), etc.
     void unlock();
     void editTranscription(); //opens dialog to edit currnet transcription
@@ -67,11 +71,15 @@ private:
     void closeEvent(QCloseEvent *event);
     void createActions();
     void createMenus();
+    void saveWarning(); //msgBox warning to save or discard.
     //actions
     QAction* exitAction; //quit application
-    QAction* advanceAction; //increment the row in the db if in SURFACE mode
+    QAction* advanceAction; //move to next item in publication
+    QAction* advance10Action; //move 10 forward in publication
+    QAction* advance100Action; //move 100 forward
     QAction* backAction; 	//decrement the row in the db if in SURFACE mode
-         //TODO - make advance and back work for publication sequence, and list.
+    QAction* back10Action; //move 10 back
+    QAction* back100Action; //move 100 back
     QAction* unlockAction; //allows editing of surface
     QAction* toggleFullScreenAction;
     QAction* saveAction; //save current state to db
@@ -132,7 +140,8 @@ private:
     //consists of a list of graphTrans.
     TranscriptionPane* transcriptionPane; 	//widget for displaying and editing
     //sets of transcriptions.
-    QDockWidget* metaDataDock; // dock window for display/editing metadata, and controls
+    QDockWidget* metadataDock; // dock window for display/editing metadata, and controls
+    QDockWidget* navigationDock; // dock window for navigation
     QDockWidget* transcriptionsDock;// dock window for the TranscriptinWindow.
     bool locked; //prevents any modification TODO: differnet kind of locks, e.g. that allows
     //reading but not writing
@@ -140,6 +149,10 @@ private:
 
     QStringList fonts;
     QString font;
+
+    int currentSurfId;
+    QList<int> surfList;
+    int currentSurfListIndex;
 }; 
 
 #endif

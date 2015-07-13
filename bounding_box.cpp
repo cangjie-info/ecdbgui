@@ -26,7 +26,7 @@ int BoundingBox::getRotation() const
 
 bool BoundingBox::boxIsNull() const
 {
-   if(height()==0 || width()==0)	//yuk
+   if(height() <= 1 || width() <= 1)	//yuk
 		return true;
 	else
 		return false;

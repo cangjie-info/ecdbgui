@@ -24,31 +24,29 @@ public:
     bool connect();
     //connects to ec db as user "qt".
     //returns true if connection succesful, false + error message box otherwise
-    bool setCorpus();
-    //queries ec.inscribedSurfaces using corpusQuery
-    //to get a result set consisting of id numbers for surfaces
-    //the default is to select all surfaces in the table
-    //if corpus has been set, position will be before the first record
-    //must use nextSurface() before attempting to read
-    //TODO variable corpora
-    bool nextSurface();
-    //move to next record in corpusQuery
-    //if no netx record, return false and stay on last record
-    bool previousSurface();
-    //move to previous record in corpusQuery
-    //if no previous record, return false and stay on first record
+//DELETE    bool setSurf();
+    int getNextSurfIdInPub(int currentId);
+    //returns the id of the next surf in pub
+    //if currentId is last surf in pub, returns currentId
+    int getNext10SurfIdInPub(int currentId);
+    //skips 10 forward in pub and returns id
+    int getNext100SurfIdInPub(int currentId);
+    int getPreviousSurfIdInPub(int currentId);
+    int getPrevious10SurfIdInPub(int currentId);
+    int getPrevious100SurfIdInPub(int currentId);
+
     void moveToSurf(int index); //moves to surface at index
     int getCorpusSize() const;
     //returns number of surfaces in corpus
     int getPositionInCorpus() const;
     //returns ordinal position of current surface in corpus
     int getCurrentSurfaceId() const; //returns ec.surfaces.id
-    void readSurface(SurfaceImgs& surf, SurfaceTranscription& trans, QString font) const; //gets currentSurface via DbHandler
+    void readSurface(int surfId, SurfaceImgs& surf, SurfaceTranscription& trans, QString font) const; //gets currentSurface via DbHandler
     static void getGrapheme(QString searchString, int& grapheme, QString& glyph);
     //tries to find grapheme in ec.signList corresponding to searchString
     //for now, only searches name field
     //returns grapheme id
-    void writeSurface(SurfaceImgs& surf, SurfaceTranscription& trans); //writes currentSurface via DbHandler
+    void writeSurface(int surfId, SurfaceImgs& surf, SurfaceTranscription& trans); //writes currentSurface via DbHandler
     //must delete all inscriptions and graphs from old version of surface
     //use transaction
     static void findGraphemeInstances(QList<int>& graphIdList, const int grapheme);
