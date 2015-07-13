@@ -29,6 +29,7 @@ entities: graphs, archeology, lingistics, etc. as needed.
 #include "surface_transcription.h"
 #include "transcription_pane.h"
 #include "config_handler.h"
+#include "navigation_widget.h"
 
 class SurfaceWindow : public QMainWindow
 {
@@ -142,6 +143,7 @@ private:
     //sets of transcriptions.
     QDockWidget* metadataDock; // dock window for display/editing metadata, and controls
     QDockWidget* navigationDock; // dock window for navigation
+    NavigationWidget* navigationWidget;
     QDockWidget* transcriptionsDock;// dock window for the TranscriptinWindow.
     bool locked; //prevents any modification TODO: differnet kind of locks, e.g. that allows
     //reading but not writing

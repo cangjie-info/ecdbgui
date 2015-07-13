@@ -28,6 +28,16 @@ void SurfaceTranscription::setPubNumber(QString newPubNumber)
 	pubNumber = newPubNumber;
 }
 
+QString SurfaceTranscription::getPubName() const
+{
+   return pubName;
+}
+
+void SurfaceTranscription::setPubName(QString name)
+{
+   pubName = name;
+}
+
 
 QString SurfaceTranscription::getSurfaceType() const
 {

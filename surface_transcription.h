@@ -12,6 +12,8 @@ public:
 	void setPubId(QString newPubId);
 	QString getPubNumber() const;
 	void setPubNumber(QString newPubNumber);
+   QString getPubName() const;
+   void setPubName(QString name);
 	QString getSurfaceType() const;
 	void setSurfaceType(QString newSurfaceType);
 	void report() const;
@@ -19,5 +21,6 @@ private:
 	QString publicationId; //ec.surfaces.publicationId
 	QString pubNumber; //ec.surfaces.pubNumber
 	QString surfaceType; //ec.surfaces
+   QString pubName;
 };
 #endif

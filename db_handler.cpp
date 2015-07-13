@@ -235,6 +235,7 @@ qDebug() << surfaceQuery.value(9).toString();
     trans.setPubId(surfaceQuery.value(6).toString());
     trans.setPubNumber(surfaceQuery.value(7).toString());
     trans.setSurfaceType(surfaceQuery.value(8).toString());
+    trans.setPubName(surfaceQuery.value(9).toString());
 
     //query ecdb.inscrs
     QString inscriptionQueryString = QString(

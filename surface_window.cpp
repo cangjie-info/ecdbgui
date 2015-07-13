@@ -29,6 +29,13 @@ SurfaceWindow::SurfaceWindow()
     addDockWidget(Qt::RightDockWidgetArea, metadataDock);
     //TODO populate with data and controls.
 
+    navigationDock = new QDockWidget("Surface navigation", this);
+    navigationDock->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, navigationDock);
+    navigationWidget = new NavigationWidget(this);
+    navigationDock->setWidget(navigationWidget);
+
+
     //create dock and scroll area for transWindow
     //TODO - currently, the dock can be closed and there is no way to
     //reopen it => fix by adding a Window menu with a show dock action.
@@ -263,7 +270,7 @@ void SurfaceWindow::statusUpdate()
     QString statusText;
     statusText += QString(
             "surface: %1, surface type: %2 | zoom = x%3, rotation = %4 | mode = %5 | %6LOCKED%7")
-            .arg(trans.getPubId() + trans.getPubNumber()) //TODO move
+            .arg(trans.getPubName() + trans.getPubNumber()) //TODO move
             .arg(trans.getSurfaceType())  //TODO move
             .arg(imagePane->getZoom())
             .arg(imagePane->getRotation())
