@@ -92,6 +92,7 @@ void SurfaceWindow::newSurf()
     //TODO - decide if locked is useful or not
     locked = true;
     modified = false;
+    navigationWidget->setEnabled(true); //okay to move, since no edits made
 
     imagePane->newSurf();
     //delete old transcription window and create new one
@@ -209,6 +210,7 @@ void SurfaceWindow::save()
 //TODO    removeTrailingNulls; (This is probably not necessary - check)
     db.writeSurface(currentSurfId, surf, trans);
     modified = false;
+    navigationWidget->setEnabled(true); //okay to move, edits saved
     statusUpdate();
 }
 
@@ -260,6 +262,7 @@ void SurfaceWindow::editTranscription()
     if(dialog.exec())
     {
         modified = true;
+        navigationWidget->setDisabled(true); //can't move until save
         statusUpdate();
         transcriptionPane->refresh();
     }
@@ -285,6 +288,7 @@ void SurfaceWindow::statusUpdate()
 void SurfaceWindow::setModified()
 {
     modified = true;
+    navigationWidget->setDisabled(true); //can't move until save
     statusUpdate();
 }
 

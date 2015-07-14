@@ -22,7 +22,7 @@ class ImagePane : public QLabel
 
 public:
 	ImagePane(QWidget* parent, SurfaceImgs* surface); //constructor
-	enum Mode {SURFACE, INSCRIPTION, GRAPH}; 
+   enum Mode {SURFACE, INSCRIPTION, GRAPH, NOIMAGE};
 	void newSurf(); //gets image from disk, sets mode to 
 			//SURFACE, resets display
 	void reset(); //sets view after change of mode or new surface.
@@ -60,7 +60,7 @@ signals:
 	void inscrImgListModified();
 
 protected:
-	void paintEvent(QPaintEvent* event); //reimplement paintEvent(?)
+   void paintEvent(QPaintEvent*); //reimplement paintEvent(?)
 
 private:
 	void rotateAndCrop(const QImage& startImg, const BoundingBox* box, QImage& endImg);

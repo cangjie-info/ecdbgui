@@ -24,13 +24,21 @@ void ImagePane::newSurf()
     hide();
     QString imageFile = surf->getImageFile();
     imageFile.prepend("/home/ads/ecdb/repository/text_imgs/");
-
     originalImage = QImage(imageFile); // load image file from disk.
-    currentImage = originalImage;
+
     currentBoxIndex=0; //in SURFACE mode, so this is the only possible value
     //remember that there may not actually be any boxes at all
     locked = true;
-    mode = SURFACE;
+    if(originalImage.isNull())
+    {
+       mode = NOIMAGE;
+       originalImage = QImage(":/no_image.png");
+    }
+    else
+    {
+      mode = SURFACE;
+    }
+    currentImage = originalImage;
     reset();
 }
 
@@ -62,6 +70,8 @@ QString ImagePane::getModeName() const
 {
     switch (mode)
     {
+    case NOIMAGE:
+       return "NO IMAGE";
     case SURFACE:
         return "SURFACE";
     case INSCRIPTION:
@@ -124,6 +134,8 @@ void ImagePane::modeDown()
 {
     switch(mode)
     {
+    case NOIMAGE:
+       break;
     case GRAPH:
         break;
     case SURFACE:
@@ -181,6 +193,8 @@ void ImagePane::modeUp()
         mode = INSCRIPTION;
         reset();
         break;
+    default:
+       break;
     }
 }
 
@@ -196,6 +210,8 @@ void ImagePane::advanceCurrentBoxIndex()
         return;
     switch(mode)
     {
+    case NOIMAGE:
+       break;
     case SURFACE:
         //do nothing
         break;
@@ -220,6 +236,8 @@ void ImagePane::reverseCurrentBoxIndex()
         return;
     switch(mode)
     {
+    case NOIMAGE:
+       break;
     case SURFACE:
         //do nothing
         break;
@@ -273,6 +291,8 @@ void ImagePane::deleteCurrentBox()
         if(currentBoxIndex == -1)
             currentBoxIndex = surf->ptrInscrAt(currentInscrIndex)->count() - 1;
         break;
+    default:
+       break;
     }
     update();
 }
@@ -289,10 +309,11 @@ bool ImagePane::confirmDelete(QString type)
 
 void ImagePane::unlock()
 {
-    locked = false;
+   if(mode == NOIMAGE) return;
+   locked = false;
 }
 
-void ImagePane::paintEvent(QPaintEvent* event)
+void ImagePane::paintEvent(QPaintEvent* /*event*/)
 {
     QPainter painter(this);
 
@@ -326,6 +347,8 @@ void ImagePane::paintEvent(QPaintEvent* event)
         for(int i=0; i < surf->ptrInscrAt(currentInscrIndex)->count(); i++)
             currentBoxList.insertBox(surf->ptrInscrAt(currentInscrIndex)->at(i), i);
         break;
+    default:
+       break;
     }
     //iterate through the list of bounding boxes
     for (int i=0; i<currentBoxList.size(); i++)
@@ -442,6 +465,8 @@ void ImagePane::mouseReleaseEvent(QMouseEvent* event)
     case GRAPH:
         surf->ptrInscrAt(currentInscrIndex)->insertBox(box, ++currentBoxIndex);
         break;
+    default:
+       break;
     }
     update();
 }
@@ -526,6 +551,8 @@ void ImagePane::raiseBoxIndex()
             emit inscrImgListModified(); //signal picked up by TranscriptionWindow
         }
         break;
+    default:
+       break;
     }
     update();
 }
@@ -558,6 +585,8 @@ void ImagePane::lowerBoxIndex()
             emit inscrImgListModified(); //signal picked up by TranscriptionWindow
         }
         break;
+    default:
+       break;
     }
     update();
 }

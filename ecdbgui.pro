@@ -42,3 +42,9 @@ SOURCES += \
 
 QT += sql
 QT += widgets
+
+RESOURCES += \
+    resources.qrc
+
+OTHER_FILES += \
+    no_image.png
