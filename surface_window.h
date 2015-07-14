@@ -31,6 +31,7 @@ entities: graphs, archeology, lingistics, etc. as needed.
 #include "transcription_pane.h"
 #include "config_handler.h"
 #include "navigation_widget.h"
+#include "surface_list.h"
 
 class SurfaceWindow : public QMainWindow
 {
@@ -64,7 +65,7 @@ private slots:
     void save(); //writes surface to db
     void discardChanges(); //discards all changes and reloads surface from db
     void changeFont(QAction* fontAction); //changes font according to fontActon.data
-//    void setPubSurf(QString pubSurf); //splits argument on ":" and loads that surface
+    void addCurrentSurfToList(); //adds the current surface (id and full name) to surfList
 
 private:
     void newSurf(); //reads surface from db
@@ -124,6 +125,7 @@ private:
     QAction* copyTransAction; //duplicates current inscription transcription and
         //inserts it at current index
     QList<QAction*> setFontActionList; //one action for each possible font
+    QAction* addCurrentSurfToListAction;
 
     //MENUS
     QMenu* fileMenu;
@@ -132,6 +134,7 @@ private:
     QMenu* rotateMenu;
     QMenu* viewMenu;
     QMenu* fontSubmenu;
+    QMenu* listMenu;
 
     //private data members
     ConfigHandler* config; //handles interaction with configuration file
@@ -159,8 +162,7 @@ private:
     QString font;
 
     int currentSurfId;
-    QList<int> surfList;
-    int currentSurfListIndex;
+    SurfaceList surfList;
 }; 
 
 #endif
