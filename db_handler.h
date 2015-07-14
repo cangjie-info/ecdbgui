@@ -54,6 +54,7 @@ public:
     static void getGraphImage(QImage& image, const int graphId, const int size);
         //returns image of graph specified by graphId.
     static void fixCracks();
+    int pubSurf2Id(QString pubName, QString surfName) const;
 private:
     //functions
     //data members

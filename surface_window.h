@@ -23,6 +23,7 @@ entities: graphs, archeology, lingistics, etc. as needed.
 #include <QScrollArea>
 #include <QDockWidget>
 #include <QDialog>
+#include <QString>
 #include "surface_imgs.h"
 #include "db_handler.h"
 #include "image_pane.h"
@@ -55,6 +56,7 @@ private slots:
     void back();
     void back10();
     void back100();
+    void setSurf(int newSurfId);
     //TODO advance(int jump), back(int jump), advanceTenPc(), moveLast(), etc.
     void unlock();
     void editTranscription(); //opens dialog to edit currnet transcription
@@ -62,6 +64,7 @@ private slots:
     void save(); //writes surface to db
     void discardChanges(); //discards all changes and reloads surface from db
     void changeFont(QAction* fontAction); //changes font according to fontActon.data
+//    void setPubSurf(QString pubSurf); //splits argument on ":" and loads that surface
 
 private:
     void newSurf(); //reads surface from db
@@ -85,6 +88,9 @@ private:
     QAction* toggleFullScreenAction;
     QAction* saveAction; //save current state to db
     QAction* discardChangesAction; //discard changes and reload from db
+    QAction* showNavigationDockAction;
+    QAction* showMetadataDockAction;
+    QAction* showTranscriptionsDockAction;
 
     //actions related to imgs
     QAction* modeDownAction; //SURFACE > INSCRIPTION or INSCRIPTION > GRAPH

@@ -2,14 +2,17 @@
 #define NAVIGATION_WIDGET_H
 
 #include <QWidget>
+#include <QLineEdit>
+#include "db_handler.h"
 
 class NavigationWidget : public QWidget
 {
    Q_OBJECT
 public:
-   explicit NavigationWidget(QWidget *parent = 0);
+   explicit NavigationWidget(DbHandler const * database, QWidget *parent = 0);
 
 signals:
+   void setSurf(int surfId);
    /*
    void forward();
    void forward10();
@@ -21,6 +24,11 @@ signals:
 public slots:
 
 private:
+   DbHandler const * db;
+   QLineEdit* lePubSurfName;
+
+private slots:
+   void pubSurf2id();
 };
 
 #endif // NAVIGATION_WIDGET_H

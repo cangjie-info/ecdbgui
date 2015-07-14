@@ -25,22 +25,23 @@ SurfaceWindow::SurfaceWindow()
 
     //TODO dock area to hold metadata and control buttons.
     metadataDock = new QDockWidget("Surface metadata", this);
-    metadataDock->setAllowedAreas(Qt::RightDockWidgetArea);
+    metadataDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, metadataDock);
     //TODO populate with data and controls.
 
     navigationDock = new QDockWidget("Surface navigation", this);
-    navigationDock->setAllowedAreas(Qt::RightDockWidgetArea);
+    navigationDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, navigationDock);
-    navigationWidget = new NavigationWidget(this);
+    navigationWidget = new NavigationWidget(&db, this);
     navigationDock->setWidget(navigationWidget);
+    connect(navigationWidget, SIGNAL(setSurf(int)), this, SLOT(setSurf(int)));
 
 
     //create dock and scroll area for transWindow
     //TODO - currently, the dock can be closed and there is no way to
     //reopen it => fix by adding a Window menu with a show dock action.
     transcriptionsDock = new QDockWidget("Surface transcriptions", this);
-    transcriptionsDock->setAllowedAreas(Qt::LeftDockWidgetArea);
+    transcriptionsDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::LeftDockWidgetArea, transcriptionsDock);
     transScrollArea = new QScrollArea(this);
     transScrollArea->setMinimumWidth(500);
@@ -119,12 +120,12 @@ void SurfaceWindow::newSurf()
     transScrollArea->setWidget(transcriptionPane);
     transcriptionPane->show();
 
-
-
     //TODO update for metadata dock
     //TODO set to inscription mode if there is alread a bounding box.
     if(!surf.isNull()) imagePane->modeDown();
     statusUpdate();
+    imagePane->setFocus();//ensure all keystrokes are captured,
+                        //instead of going to controls
 }
 
 void SurfaceWindow::saveWarning()
@@ -470,6 +471,15 @@ void SurfaceWindow::createActions()
        setFontActionList.append(setFontAction);
     }
 
+    showNavigationDockAction = new QAction("Show navigation dock", this);
+    connect(showNavigationDockAction, SIGNAL(triggered()),
+            navigationDock, SLOT(show()));
+    showMetadataDockAction = new QAction("Show metadata dock", this);
+    connect(showMetadataDockAction, SIGNAL(triggered()),
+            metadataDock, SLOT(show()));
+    showTranscriptionsDockAction = new QAction("Show transcriptions dock", this);
+    connect(showTranscriptionsDockAction, SIGNAL(triggered()),
+            transcriptionsDock, SLOT(show()));
 }
 
 void SurfaceWindow::createMenus()
@@ -526,6 +536,9 @@ void SurfaceWindow::createMenus()
     }
     connect(fontSubmenu, SIGNAL(triggered(QAction *)),
             this, SLOT(changeFont(QAction *)));
+    viewMenu->addAction(showNavigationDockAction);
+    viewMenu->addAction(showMetadataDockAction);
+    viewMenu->addAction(showTranscriptionsDockAction);
 }
 
 void SurfaceWindow::changeFont(QAction *fontAction)
@@ -535,4 +548,11 @@ void SurfaceWindow::changeFont(QAction *fontAction)
    QMessageBox msgBox;
    msgBox.setText("The new font will be applied on the next surface load.");
    msgBox.exec();
+}
+
+void SurfaceWindow::setSurf(int newSurfId)
+{
+   //NEED TO CONTROL FOR MODIFIED INSCRIPTIONS
+   currentSurfId = newSurfId;
+   newSurf();
 }

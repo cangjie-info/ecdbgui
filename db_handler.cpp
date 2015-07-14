@@ -632,3 +632,28 @@ void DbHandler::fixCracks()
     QSqlQuery deleteQuery;
     deleteQuery.exec(deleteQueryString);
 }
+
+int DbHandler::pubSurf2Id(QString pub, QString surf) const
+{
+   QString surfString("");
+   if(surf == ""); //do nothing
+   else surfString = QString("TRIM(LEADING '0' FROM inscr_surfs.name) = %1 AND ").arg(surf);
+   QString queryString = QString("SELECT inscr_surfs.id "
+                                 "FROM inscr_surfs "
+                                 "INNER JOIN pubs ON pub_id=pubs.id "
+                                 "WHERE %1pubs.name = '%2' "
+                                 "ORDER BY inscr_surfs.name ASC "
+                                 "LIMIT 1;").arg(surfString).arg(pub);
+   QSqlQuery query;
+qDebug() << queryString;
+   query.exec(queryString);
+   if(query.next())
+   {
+      return query.value(0).toInt();
+   }
+   else
+   {
+      return 0;
+   }
+
+}
