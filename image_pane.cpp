@@ -11,6 +11,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QMessageBox>
+#include <QDir>
 
 ImagePane::ImagePane(QWidget* parent, SurfaceImgs* surface) //constructor
     : 	QLabel(parent), surf(surface), rubberBand(NULL)
@@ -23,9 +24,11 @@ void ImagePane::newSurf()
 {
     hide();
     QString imageFile = surf->getImageFile();
-    imageFile.prepend("/home/ads/ecdb/repository/text_imgs/");
+    imageFile.prepend(QDir::homePath() + "/ecdb/repository/text_imgs/");
+qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAA";
+//THIS IS REALLLLLY SLOW ON WINDOWS. WHY??
     originalImage = QImage(imageFile); // load image file from disk.
-
+qDebug() << "AAAAAAAAAAAAAAAAAAAAAAAAAA";
     currentBoxIndex=0; //in SURFACE mode, so this is the only possible value
     //remember that there may not actually be any boxes at all
     locked = true;
