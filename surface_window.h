@@ -66,6 +66,7 @@ private slots:
     void discardChanges(); //discards all changes and reloads surface from db
     void changeFont(QAction* fontAction); //changes font according to fontActon.data
     void addCurrentSurfToList(); //adds the current surface (id and full name) to surfList
+    void sortList(); //sorts current list by full name
 
 private:
     void newSurf(); //reads surface from db
@@ -125,7 +126,9 @@ private:
     QAction* copyTransAction; //duplicates current inscription transcription and
         //inserts it at current index
     QList<QAction*> setFontActionList; //one action for each possible font
-    QAction* addCurrentSurfToListAction;
+
+    QAction* addCurrentSurfToListAction; //adds current surface to the current list
+    QAction* sortListAction; //sorts the current list by pub and id
 
     //MENUS
     QMenu* fileMenu;
@@ -162,7 +165,7 @@ private:
     QString font;
 
     int currentSurfId;
-    SurfaceList surfList;
+    SurfaceList surfList; //
 }; 
 
 #endif

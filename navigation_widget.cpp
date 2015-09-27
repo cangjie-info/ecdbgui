@@ -8,12 +8,14 @@ NavigationWidget::NavigationWidget(DbHandler const* database, QWidget *parent) :
    QWidget(parent), db(database)
 {
    QVBoxLayout* navigationLayout = new QVBoxLayout(this);
-   QLabel* lbPub = new QLabel("Publication nav.");
+   QLabel* lbPub = new QLabel("<h2>Publication navigation</h2>");
    navigationLayout->addWidget(lbPub);
 
    QHBoxLayout* pubSurfNameLayout = new QHBoxLayout(this);
    QLabel* lbPubSurfName = new QLabel("Publication name and/or surface:");
    lePubSurfName = new QLineEdit();
+         //Q: why does this have to be a member, unlike the buttons?
+         //A: becuase the slot it triggers needs to access its .text member.
    pubSurfNameLayout->addWidget(lbPubSurfName);
    pubSurfNameLayout->addWidget(lePubSurfName);
    navigationLayout->addLayout(pubSurfNameLayout);
@@ -43,7 +45,6 @@ NavigationWidget::NavigationWidget(DbHandler const* database, QWidget *parent) :
    connect(btnForward100, SIGNAL(clicked()), parent, SLOT(advance100()));
 
    connect(lePubSurfName, SIGNAL(returnPressed()), this, SLOT(pubSurf2id()));
-
 
    QList<QPushButton *> allBtns = this->findChildren<QPushButton *>();
    foreach(QPushButton* btn, allBtns)

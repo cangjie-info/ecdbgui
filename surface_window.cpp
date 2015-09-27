@@ -487,6 +487,9 @@ void SurfaceWindow::createActions()
 
     addCurrentSurfToListAction = new QAction("Add current surface to list", this);
     connect(addCurrentSurfToListAction, SIGNAL(triggered()), this, SLOT(addCurrentSurfToList()));
+
+    sortListAction = new QAction("Sort current list by surface name", this);
+    connect(sortListAction, SIGNAL(triggered()), this, SLOT(sortList()));
 }
 
 void SurfaceWindow::createMenus()
@@ -547,8 +550,9 @@ void SurfaceWindow::createMenus()
     viewMenu->addAction(showMetadataDockAction);
     viewMenu->addAction(showTranscriptionsDockAction);
 
-    listMenu = menuBar()->addMenu(tr("List"));
+    listMenu = menuBar()->addMenu(tr("&List"));
     listMenu->addAction(addCurrentSurfToListAction);
+    listMenu->addAction(sortListAction);
 }
 
 void SurfaceWindow::changeFont(QAction *fontAction)
@@ -577,4 +581,10 @@ void SurfaceWindow::addCurrentSurfToList()
    surfList.append(surfPair);
    surfList.moveLast(); //so that the newly apended surf is current in the list.
    surfList.displayList();
+}
+
+void SurfaceWindow::sortList()
+{
+   using namespace::std;
+   std::sort(surfList.begin(), surfList.end());
 }
