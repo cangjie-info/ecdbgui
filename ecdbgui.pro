@@ -17,7 +17,7 @@ HEADERS += \
     transcription_pane.h \
     image_pane.h \
     navigation_widget.h \
-    surface_list.h
+    entity_list.h
 
 SOURCES += \
     bounding_box.cpp \
@@ -39,7 +39,7 @@ SOURCES += \
     transcription_pane.cpp \
     image_pane.cpp \
     navigation_widget.cpp \
-    surface_list.cpp
+    entity_list.cpp
 
 
 QT += sql

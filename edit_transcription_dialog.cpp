@@ -29,7 +29,7 @@ EditTranscriptionDialog::EditTranscriptionDialog(
 
     //transcription label
     transLabel = new QLabel(this);
-    QFont font("ICS3");
+    QFont font("HuaDong");
     font.setPixelSize(30);
     transLabel->setFont(font);
     transLabel->setAlignment(Qt::AlignLeft);

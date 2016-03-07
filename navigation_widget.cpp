@@ -3,16 +3,44 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QStringList>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QDebug>
 
 NavigationWidget::NavigationWidget(DbHandler const* database, QWidget *parent) :
-   QWidget(parent), db(database)
+   QWidget(parent), db(database), listIndex(-1)
 {
-   QVBoxLayout* navigationLayout = new QVBoxLayout(this);
+   QVBoxLayout* navigationLayout = new QVBoxLayout();
+// LIST NAVIGATION
+   QLabel* lbList = new QLabel("<h2>List navigation</h2>");
+   navigationLayout->addWidget(lbList);
+
+   comboListOfLists = new QComboBox();
+   connect(comboListOfLists, SIGNAL(currentIndexChanged(int)), this, SLOT(setListIndex(int)));
+   navigationLayout->addWidget(comboListOfLists);
+
+   QHBoxLayout* listButtonsLayout = new QHBoxLayout();
+
+   QPushButton* btnNewList = new QPushButton("New list");
+   listButtonsLayout->addWidget(btnNewList);
+   QPushButton* btnDeleteList = new QPushButton("Delete list");
+   listButtonsLayout->addWidget(btnDeleteList);
+   QPushButton* btnLoadList = new QPushButton("Load list");
+   listButtonsLayout->addWidget(btnLoadList);
+   QPushButton* btnSaveList = new QPushButton("Save list");
+   listButtonsLayout->addWidget(btnSaveList);
+
+   navigationLayout->addLayout(listButtonsLayout);
+
+   connect(btnNewList, SIGNAL(clicked()), this, SLOT(newList()));
+   connect(btnDeleteList, SIGNAL(clicked()), this, SLOT(deleteList()));
+
+//PUBLICATION NAVIGATION
    QLabel* lbPub = new QLabel("<h2>Publication navigation</h2>");
    navigationLayout->addWidget(lbPub);
 
-   QHBoxLayout* pubSurfNameLayout = new QHBoxLayout(this);
-   QLabel* lbPubSurfName = new QLabel("Publication name and/or surface:");
+   QHBoxLayout* pubSurfNameLayout = new QHBoxLayout();
+   QLabel* lbPubSurfName = new QLabel("Pub name and/or surface:");
    lePubSurfName = new QLineEdit();
          //Q: why does this have to be a member, unlike the buttons?
          //A: becuase the slot it triggers needs to access its .text member.
@@ -21,7 +49,7 @@ NavigationWidget::NavigationWidget(DbHandler const* database, QWidget *parent) :
    navigationLayout->addLayout(pubSurfNameLayout);
 
 
-   QHBoxLayout* pubNavBtnLayout = new QHBoxLayout(this);
+   QHBoxLayout* pubNavBtnLayout = new QHBoxLayout();
    QPushButton* btnBack100 = new QPushButton("<<<");
    pubNavBtnLayout->addWidget(btnBack100);
    QPushButton* btnBack10 = new QPushButton("<<");
@@ -46,14 +74,14 @@ NavigationWidget::NavigationWidget(DbHandler const* database, QWidget *parent) :
 
    connect(lePubSurfName, SIGNAL(returnPressed()), this, SLOT(pubSurf2id()));
 
-   QList<QPushButton *> allBtns = this->findChildren<QPushButton *>();
-   foreach(QPushButton* btn, allBtns)
+   for (int i = 0; i < pubNavBtnLayout->count(); i++)
    {
+      QWidget* btn = pubNavBtnLayout->itemAt(i)->widget();
       btn->setMaximumWidth(30);
    }
-
    setLayout(navigationLayout);
 }
+
 
 void NavigationWidget::pubSurf2id()
 {
@@ -67,3 +95,65 @@ void NavigationWidget::pubSurf2id()
    else emit setSurf(newSurfId);
 }
 
+void NavigationWidget::newList() {
+    QString listName = QInputDialog::getText(this, "List name",
+            "New list name:");
+    if(listName.isEmpty()) {
+        return;
+    }
+    else {
+        comboListOfLists->addItem(listName);
+        EntityList* list = new EntityList(surface, listName);
+        listOfLists.append(*list);
+    }
+}
+
+void NavigationWidget::setListIndex(int index) {
+    listIndex = index;
+}
+
+void NavigationWidget::deleteList() {
+    qDebug() << "number of lists = " << listOfLists.size();
+    if(listOfLists.size() < 1) return;
+    QMessageBox msgBox;
+
+    QString text = "Current list = " + comboListOfLists->currentText();
+    msgBox.setText(text);
+    msgBox.setInformativeText("Are you sure you want to delete this list?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    int ret = msgBox.exec();
+    if(ret == QMessageBox::No) {
+        return;
+    }
+    else {
+        comboListOfLists->removeItem(comboListOfLists->currentIndex());
+        comboListOfLists->setCurrentIndex(0); // no harm if combo is now empty
+        listOfLists.removeAt(listIndex);
+        if(listOfLists.size() > 0) {
+            listIndex = 0;
+        }
+        else {
+            listIndex = -1;
+        }
+    }
+}
+
+/*
+void NavigationWidget::addCurrentSurfToList()
+{
+   QPair<QString, int> surfPair;
+   surfPair.first = parent->trans.getPubName() + parent->trans.getPubNumber();
+   surfPair.second = parent->currentSurfId;
+   if(surfList.contains(surfPair)) return;
+   surfList.append(surfPair);
+   surfList.moveLast(); //so that the newly apended surf is current in the list.
+   surfList.displayList();
+}
+
+void NavigationWidget::sortList()
+{
+   using namespace::std;
+   std::sort(surfList.begin(), surfList.end());
+}
+*/

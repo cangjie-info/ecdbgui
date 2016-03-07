@@ -2,7 +2,10 @@
 #define NAVIGATION_WIDGET_H
 
 #include <QWidget>
+#include <QList>
 #include <QLineEdit>
+#include <QComboBox>
+#include "entity_list.h"
 #include "db_handler.h"
 
 class NavigationWidget : public QWidget
@@ -13,22 +16,21 @@ public:
 
 signals:
    void setSurf(int surfId);
-   /*
-   void forward();
-   void forward10();
-   void forward100();
-   void back();
-   void back10();
-   void back100();
-*/
+
 public slots:
 
 private:
    DbHandler const * db;
    QLineEdit* lePubSurfName;
+   QList<EntityList> listOfLists; //list of lists of surface is
+   int listIndex; //index of the current list within the list of lists.
+   QComboBox* comboListOfLists;
 
 private slots:
    void pubSurf2id();
+   void newList();
+   void deleteList();
+   void setListIndex(int index);
 };
 
 #endif // NAVIGATION_WIDGET_H

@@ -485,11 +485,6 @@ void SurfaceWindow::createActions()
     connect(showTranscriptionsDockAction, SIGNAL(triggered()),
             transcriptionsDock, SLOT(show()));
 
-    addCurrentSurfToListAction = new QAction("Add current surface to list", this);
-    connect(addCurrentSurfToListAction, SIGNAL(triggered()), this, SLOT(addCurrentSurfToList()));
-
-    sortListAction = new QAction("Sort current list by surface name", this);
-    connect(sortListAction, SIGNAL(triggered()), this, SLOT(sortList()));
 }
 
 void SurfaceWindow::createMenus()
@@ -551,8 +546,6 @@ void SurfaceWindow::createMenus()
     viewMenu->addAction(showTranscriptionsDockAction);
 
     listMenu = menuBar()->addMenu(tr("&List"));
-    listMenu->addAction(addCurrentSurfToListAction);
-    listMenu->addAction(sortListAction);
 }
 
 void SurfaceWindow::changeFont(QAction *fontAction)
@@ -570,21 +563,4 @@ void SurfaceWindow::setSurf(int newSurfId)
    //trying: disable widgets that can change current surface.
    currentSurfId = newSurfId;
    newSurf();
-}
-
-void SurfaceWindow::addCurrentSurfToList()
-{
-   QPair<QString, int> surfPair;
-   surfPair.first = trans.getPubName() + trans.getPubNumber();
-   surfPair.second = currentSurfId;
-   if(surfList.contains(surfPair)) return;
-   surfList.append(surfPair);
-   surfList.moveLast(); //so that the newly apended surf is current in the list.
-   surfList.displayList();
-}
-
-void SurfaceWindow::sortList()
-{
-   using namespace::std;
-   std::sort(surfList.begin(), surfList.end());
 }
