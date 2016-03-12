@@ -32,6 +32,9 @@ entities: graphs, archeology, lingistics, etc. as needed.
 #include "config_handler.h"
 #include "navigation_widget.h"
 
+class NavigationWidget; //needed because of cicrular dependency
+        //btw this and NavigationWidget
+
 class SurfaceWindow : public QMainWindow
 {
     Q_OBJECT //necessary for use of signals and slots
@@ -44,6 +47,7 @@ public:
 public slots:
     void statusUpdate(); //write status bar text. TODO: make private?
     void setModified(); //sets modified to true, connect to signals in imageLabel and TranscriptionWindow
+    int getSurfId() {return currentSurfId;}
 signals:
     void unlockSignal();
 private slots:

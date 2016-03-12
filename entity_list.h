@@ -15,11 +15,14 @@ public:
    void moveLast();
    void moveFirst();
    void forward();
+   void setIndex(int newIndex);
+   int getIndex() {return index;}
    void back();
    void displayList();
    void saveList() {}
    bool openList() {return false;} //return false on failure
    void setName(QString newName);
+   QString getName() {return listName;}
    int current(); //returns current entity, 0 if list if empty
 private:
    int index; //current position in list

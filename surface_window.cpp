@@ -558,9 +558,15 @@ void SurfaceWindow::changeFont(QAction *fontAction)
 }
 
 void SurfaceWindow::setSurf(int newSurfId)
-{
-   //NEED TO CONTROL FOR MODIFIED INSCRIPTIONS
-   //trying: disable widgets that can change current surface.
-   currentSurfId = newSurfId;
-   newSurf();
+{   if(modified) { //this should never happen, since navigation widget is disabled when
+                    //the surface is modified but not saved.
+        QMessageBox msg;
+        msg.setText("Surface data modified. Save or discard before moving to new surface.");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
+    else {
+        currentSurfId = newSurfId;
+        newSurf();
+    }
 }

@@ -19,6 +19,10 @@ void EntityList::setName(QString newName)
    dirty = true;
 }
 
+void EntityList::setIndex(int newIndex) {
+    index = newIndex;
+}
+
 void EntityList::moveLast()
 {
    index = size() - 1;
